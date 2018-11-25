@@ -1,44 +1,16 @@
-From 1ca76c204b96b36c78fbd493c2d76d62ecc930fe Mon Sep 17 00:00:00 2001
-From: Matteo Bruni <mbruni@codeweavers.com>
-Date: Wed, 18 Jul 2018 21:17:17 +0200
-Subject: [PATCH] dxgi: Hack implementation of QueryVideoMemoryInfo().
-
 ---
- dlls/dxgi/adapter.c | 23 +++++++++++++++++++++--
- 1 file changed, 21 insertions(+), 2 deletions(-)
+ dlls/dxgi/adapter.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/dlls/dxgi/adapter.c b/dlls/dxgi/adapter.c
 index b96904e90c0..522a3aedf2d 100644
 --- a/dlls/dxgi/adapter.c
 +++ b/dlls/dxgi/adapter.c
-@@ -297,10 +297,29 @@ static void STDMETHODCALLTYPE dxgi_adapter_UnregisterHardwareContentProtectionTe
- static HRESULT STDMETHODCALLTYPE dxgi_adapter_QueryVideoMemoryInfo(IWineDXGIAdapter *iface,
-         UINT node_index, DXGI_MEMORY_SEGMENT_GROUP segment_group, DXGI_QUERY_VIDEO_MEMORY_INFO *memory_info)
- {
--    FIXME("iface %p, node_index %u, segment_group %#x, memory_info %p stub!\n",
-+    struct dxgi_adapter *adapter = impl_from_IWineDXGIAdapter(iface);
-+    struct wined3d_adapter_identifier adapter_id;
-+    HRESULT hr;
-+
-+    FIXME("iface %p, node_index %u, segment_group %#x, memory_info %p semi-stub!\n",
-             iface, node_index, segment_group, memory_info);
+@@ -334,7 +334,7 @@
+             return E_INVALIDARG;
+     }
  
--    return E_NOTIMPL;
-+    adapter_id.driver_size = 0;
-+    adapter_id.description_size = 0;
-+    adapter_id.device_name_size = 0;
-+
-+    wined3d_mutex_lock();
-+    hr = wined3d_get_adapter_identifier(adapter->factory->wined3d, adapter->ordinal, 0, &adapter_id);
-+    wined3d_mutex_unlock();
-+
-+    if (FAILED(hr))
-+        return hr;
-+
-+    memory_info->Budget = adapter_id.video_memory;
-+    memory_info->CurrentUsage = 0;
-+    memory_info->AvailableForReservation = adapter_id.video_memory;
-+    memory_info->CurrentReservation = 0;
+-    return hr;
 +    return S_OK;
  }
  
