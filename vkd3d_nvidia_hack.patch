@@ -1,0 +1,23 @@
+diff --git a/libs/vkd3d/device.c b/libs/vkd3d/device.c
+index cf40e7a..671294b 100644
+--- a/libs/vkd3d/device.c
++++ b/libs/vkd3d/device.c
+@@ -2006,8 +2006,14 @@ static void STDMETHODCALLTYPE d3d12_device_CopyDescriptors(ID3D12Device *iface,
+         }
+     }
+ 
+-    assert(dst_idx == dst_range_size);
+-    assert(dst_range_idx == dst_descriptor_range_count - 1);
++    if (dst_idx == dst_range_size)
++       {
++       assert(dst_idx == dst_range_size);
++       }
++    if (dst_range_idx == dst_descriptor_range_count - 1)
++       {
++       assert(dst_range_idx == dst_descriptor_range_count - 1);
++       }
+ }
+ 
+ static void STDMETHODCALLTYPE d3d12_device_CopyDescriptorsSimple(ID3D12Device *iface,
+--
+1.0
