@@ -2,7 +2,7 @@ diff --git a/dlls/dxgi/swapchain.c b/dlls/dxgi/swapchain.c
 index 4dfa068..3f82cfa 100644
 --- a/dlls/dxgi/swapchain.c
 +++ b/dlls/dxgi/swapchain.c
-@@ -1559,7 +1559,7 @@ static HRESULT d3d12_swapchain_create_vulkan_swapchain(struct d3d12_swapchain *s
+@@ -1491,7 +1491,7 @@ static HRESULT d3d12_swapchain_create_vulkan_swapchain(struct d3d12_swapchain *s
      vk_swapchain_desc.pQueueFamilyIndices = NULL;
      vk_swapchain_desc.preTransform = surface_caps.currentTransform;
      vk_swapchain_desc.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
