@@ -1,0 +1,209 @@
+--- a/libs/vkd3d/command.c	
++++ a/libs/vkd3d/command.c	
+@@ -4360,6 +4360,8 @@ static ULONG STDMETHODCALLTYPE d3d12_command_queue_Release(ID3D12CommandQueue *i
+     {
+         struct d3d12_device *device = command_queue->device;
+ 
++        vkd3d_private_store_destroy(&command_queue->private_store);
++
+         vkd3d_free(command_queue);
+ 
+         ID3D12Device_Release(&device->ID3D12Device_iface);
+@@ -4371,17 +4373,21 @@ static ULONG STDMETHODCALLTYPE d3d12_command_queue_Release(ID3D12CommandQueue *i
+ static HRESULT STDMETHODCALLTYPE d3d12_command_queue_GetPrivateData(ID3D12CommandQueue *iface,
+         REFGUID guid, UINT *data_size, void *data)
+ {
+-    FIXME("iface %p, guid %s, data_size %p, data %p stub!", iface, debugstr_guid(guid), data_size, data);
++    struct d3d12_command_queue *command_queue = impl_from_ID3D12CommandQueue(iface);
+ 
+-    return E_NOTIMPL;
++    TRACE("iface %p, guid %s, data_size %p, data %p.", iface, debugstr_guid(guid), data_size, data);
++
++    return vkd3d_get_private_data(&command_queue->private_store, guid, data_size, data);
+ }
+ 
+ static HRESULT STDMETHODCALLTYPE d3d12_command_queue_SetPrivateData(ID3D12CommandQueue *iface,
+         REFGUID guid, UINT data_size, const void *data)
+ {
+-    FIXME("iface %p, guid %s, data_size %u, data %p stub!\n", iface, debugstr_guid(guid), data_size, data);
++    struct d3d12_command_queue *command_queue = impl_from_ID3D12CommandQueue(iface);
+ 
+-    return E_NOTIMPL;
++    TRACE("iface %p, guid %s, data_size %u, data %p.\n", iface, debugstr_guid(guid), data_size, data);
++
++    return vkd3d_set_private_data(&command_queue->private_store, guid, data_size, data);
+ }
+ 
+ static HRESULT STDMETHODCALLTYPE d3d12_command_queue_SetPrivateDataInterface(ID3D12CommandQueue *iface,
+@@ -4673,6 +4679,8 @@ static HRESULT d3d12_command_queue_init(struct d3d12_command_queue *queue,
+     if (desc->Flags)
+         FIXME("Ignoring flags %#x.\n", desc->Flags);
+ 
++    vkd3d_private_store_init(&queue->private_store);
++
+     queue->device = device;
+     ID3D12Device_AddRef(&device->ID3D12Device_iface);
+ 
+--- a/libs/vkd3d/vkd3d_private.h	
++++ a/libs/vkd3d/vkd3d_private.h	
+@@ -163,6 +163,151 @@ void *vkd3d_gpu_va_allocator_dereference(struct vkd3d_gpu_va_allocator *allocato
+ void vkd3d_gpu_va_allocator_free(struct vkd3d_gpu_va_allocator *allocator,
+         D3D12_GPU_VIRTUAL_ADDRESS address) DECLSPEC_HIDDEN;
+ 
++struct vkd3d_private_store
++{
++    struct list content;
++};
++
++struct vkd3d_private_data
++{
++    struct list entry;
++
++    GUID tag;
++    unsigned int size;
++    bool is_object;
++    union
++    {
++        BYTE data[1];
++        IUnknown *object;
++    } u;
++};
++
++static inline void vkd3d_private_store_init(struct vkd3d_private_store *store)
++{
++    list_init(&store->content);
++}
++
++static inline struct vkd3d_private_data *vkd3d_private_store_get_private_data(
++        const struct vkd3d_private_store *store, const GUID *tag)
++{
++    struct vkd3d_private_data *data;
++
++    LIST_FOR_EACH_ENTRY(data, &store->content, struct vkd3d_private_data, entry)
++    {
++        if (IsEqualGUID(&data->tag, tag))
++            return data;
++    }
++
++    return NULL;
++}
++
++static inline void vkd3d_private_store_free_private_data(struct vkd3d_private_data *data)
++{
++    if (data->is_object)
++        IUnknown_Release(data->u.object);
++    list_remove(&data->entry);
++    vkd3d_free(data);
++}
++
++static inline void vkd3d_private_store_destroy(struct vkd3d_private_store *store)
++{
++    struct vkd3d_private_data *data, *cursor;
++
++    LIST_FOR_EACH_ENTRY_SAFE(data, cursor, &store->content, struct vkd3d_private_data, entry)
++    {
++        vkd3d_private_store_free_private_data(data);
++    }
++}
++
++static inline HRESULT vkd3d_private_store_set_private_data(struct vkd3d_private_store *store,
++        const GUID *tag, const void *data, unsigned int data_size, bool is_object)
++{
++    struct vkd3d_private_data *d, *old_data;
++    const void *ptr = data;
++
++    if (is_object)
++    {
++        if (data_size != sizeof(IUnknown *))
++            return E_INVALIDARG; // FIXME: test
++        ptr = &data;
++    }
++
++    if (!(d = vkd3d_malloc(offsetof(struct vkd3d_private_data, u.data[data_size]))))
++        return E_OUTOFMEMORY;
++
++    d->tag = *tag;
++    d->size = data_size;
++    d->is_object = is_object;
++    memcpy(d->u.data, ptr, data_size);
++    if (is_object)
++        IUnknown_AddRef(d->u.object);
++
++    if ((old_data = vkd3d_private_store_get_private_data(store, tag)))
++        vkd3d_private_store_free_private_data(old_data);
++    list_add_tail(&store->content, &d->entry);
++
++    return S_OK;
++}
++
++// FIXME: test thread-safety?
++static inline HRESULT vkd3d_get_private_data(struct vkd3d_private_store *store,
++        const GUID *tag, unsigned int *out_size, void *out)
++{
++    const struct vkd3d_private_data *data;
++    unsigned int size;
++
++    if (!out_size)
++        return E_INVALIDARG;
++
++    if (!(data = vkd3d_private_store_get_private_data(store, tag)))
++    {
++        *out_size = 0;
++        //FIXME: return DXGI_ERROR_NOT_FOUND;
++        return E_FAIL;
++    }
++
++    size = *out_size;
++    *out_size = data->size;
++    if (!out)
++        return S_OK;
++
++    if (size < data->size)
++        //FIXME: return DXGI_ERROR_MORE_DATA;
++        return E_FAIL;
++
++    if (data->is_object)
++        IUnknown_AddRef(data->u.object);
++    memcpy(out, data->u.data, data->size);
++
++    return S_OK;
++}
++
++static inline HRESULT vkd3d_set_private_data(struct vkd3d_private_store *store,
++        const GUID *tag, unsigned int data_size, const void *data)
++{
++    struct vkd3d_private_data *d;
++
++    if (!data)
++    {
++        if (!(d = vkd3d_private_store_get_private_data(store, tag)))
++            return S_FALSE;
++
++        vkd3d_private_store_free_private_data(d);
++        return S_OK;
++    }
++
++    return vkd3d_private_store_set_private_data(store, tag, data, data_size, false);
++}
++
++static inline HRESULT vkd3d_set_private_data_interface(struct vkd3d_private_store *store,
++        const GUID *tag, const IUnknown *object)
++{
++    if (!object)
++        return vkd3d_set_private_data(store, tag, sizeof(object), &object);
++
++    return vkd3d_private_store_set_private_data(store, tag, object, sizeof(object), true);
++}
++
+ /* ID3D12Fence */
+ struct d3d12_fence
+ {
+@@ -744,6 +889,8 @@ struct d3d12_command_queue
+     struct vkd3d_queue *vkd3d_queue;
+ 
+     struct d3d12_device *device;
++
++    struct vkd3d_private_store private_store;
+ };
+ 
+ HRESULT d3d12_command_queue_create(struct d3d12_device *device,
