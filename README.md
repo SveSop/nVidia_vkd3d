@@ -12,5 +12,5 @@ Download latest GIT from: https://source.winehq.org/git/vkd3d.git/
 Patch vkd3d with 0001_WIP.patch + 0002_Descriptors.patch and compile.  
 
 
-ESYNC patch is meant to patch wine-staging. Currently rebased to wine-staging-4.0-rc1.  
+ESYNC patch is meant to patch wine-staging. Currently rebased to wine-staging-4.0-rc3.  
 
