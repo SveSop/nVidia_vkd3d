@@ -67,7 +67,7 @@ diff -urN a/configure b/configure
  	sys/exec_elf.h \
  	sys/filio.h \
  	sys/inotify.h \
-@@ -17287,6 +17276,7 @@
+@@ -17394,6 +17383,7 @@
  	poll \
  	popen \
  	port_create \
@@ -75,7 +75,7 @@ diff -urN a/configure b/configure
  	prctl \
  	pread \
  	proc_pidinfo \
-@@ -17699,6 +17689,72 @@
+@@ -17806,6 +17796,72 @@
  
  LIBS=$ac_save_LIBS
  
@@ -168,7 +168,7 @@ diff -urN a/configure.ac b/configure.ac
  	sys/exec_elf.h \
  	sys/filio.h \
  	sys/inotify.h \
-@@ -2271,6 +2272,7 @@
+@@ -2279,6 +2280,7 @@
  	poll \
  	popen \
  	port_create \
@@ -176,7 +176,7 @@ diff -urN a/configure.ac b/configure.ac
  	prctl \
  	pread \
  	proc_pidinfo \
-@@ -2351,6 +2353,16 @@
+@@ -2359,6 +2361,16 @@
                  test "$ac_res" = "none required" || AC_SUBST(RT_LIBS,"$ac_res")])
  LIBS=$ac_save_LIBS
  
@@ -2851,14 +2851,14 @@ diff -urN a/include/wine/server_protocol.h b/include/wine/server_protocol.h
 diff -urN a/libs/wine/config.c b/libs/wine/config.c
 --- a/libs/wine/config.c	2018-11-21 17:29:06.991440485 +0100
 +++ b/libs/wine/config.c	2018-11-21 17:44:38.495746652 +0100
-@@ -901,6 +901,7 @@
-     { "Erich E. Hoover", "ws2_32: Add support for TF_REUSE_SOCKET to TransmitFile.", 1 },
-     { "Eriks Dobelis", "winex11: Implement PK_CHANGE for wintab.", 1 },
+@@ -903,6 +903,7 @@
+     { "Fabian Maurer", "api-ms-win-crt-private-l1-1-0: Update to 10.0.17134.12 (WinBuild.160101.0800).", 1 },
+     { "Fabian Maurer", "ucrtbase: Forward a few functions for dxil.dll and pkgmgr.exe.", 1 },
      { "Felix Yan", "winex11.drv: Update a candidate window's position with over-the-spot style.", 2 },
 +    { "Firerat", "winecfg: Toggle upstream CSMT implementation.", 1},
      { "Gabriel Ivăncescu", "shell32/iconcache: Generate icons from available icons if some icon sizes failed to load.", 1 },
+     { "Gijs Vermeulen", "imm32: Only generate 'WM_IME_SETCONTEXT' message if window has focus.", 1 },
      { "Gijs Vermeulen", "qwave: Added QOSCreateHandle stub.", 1 },
-     { "Hao Peng", "winecfg: Double click in dlls list to edit item's overides.", 3 },
 diff -urN a/libs/wine/Makefile.in b/libs/wine/Makefile.in
 --- a/libs/wine/Makefile.in	2018-11-21 17:29:06.991440485 +0100
 +++ b/libs/wine/Makefile.in	2018-11-21 17:44:38.495746652 +0100
@@ -5263,20 +5263,3 @@ diff -urN a/tools/winegcc/Makefile.in b/tools/winegcc/Makefile.in
 	-DDLLDIR="\"${dlldir}\"" \
 	-DLIBDIR="\"${libdir}\"" \
 	-DCC="\"$(CC)\"" \
-diff -urN a/tools/winegcc/winegcc.c b/tools/winegcc/winegcc.c
---- a/tools/winegcc/winegcc.c   2018-11-23 21:16:24.000000000 +0100
-+++ b/tools/winegcc/winegcc.c   2018-11-24 14:16:53.000000000 +0100
-@@ -695,11 +695,10 @@
-     {
-         if (opts->use_msvcrt)
-         {
--            strarray_add(comp_args, gcc_defs ? "-isystem" INCLUDEDIR "/wine/msvcrt" : "-I" INCLUDEDIR "/wine/msvcrt" );
-+            strarray_add(comp_args, gcc_defs ? "-isystem" INCLUDEDIR "/msvcrt" : "-I" INCLUDEDIR "/msvcrt" );
-             strarray_add(comp_args, "-D__MSVCRT__");
-         }
--        strarray_add(comp_args, gcc_defs ? "-isystem" INCLUDEDIR : "-I" INCLUDEDIR );
--        strarray_add(comp_args, gcc_defs ? "-isystem" INCLUDEDIR "/wine/windows" : "-I" INCLUDEDIR "/wine/windows" );
-+        strarray_add(comp_args, gcc_defs ? "-isystem" INCLUDEDIR "/windows" : "-I" INCLUDEDIR "/windows" );
-     }
-     else if (opts->wine_objdir)
-         strarray_add(comp_args, strmake("-I%s/include", opts->wine_objdir) );
