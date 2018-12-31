@@ -4,7 +4,7 @@ nVidia patches &amp; hacks for vkd3d and wine
 Patches for wine:  
 Added patch to force vsync off for d3d12 when using vkd3d  
 Patches wine source. Need to recompile wine.  
-# Esync_patches  
+###### Esync_patches  
 Rebased complete patchset from ZFigura to patch wine-staging  
 
 
