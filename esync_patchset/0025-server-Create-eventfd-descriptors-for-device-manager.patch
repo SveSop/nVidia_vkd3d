@@ -79,7 +79,7 @@ index 94309ba112..5c13a839ab 100644
          delete_device( device );
          release_object( &device->obj );
 +
-+	if (do_esync())
++        if (do_esync())
 +            close( manager->esync_fd );
      }
  }

@@ -64,7 +64,7 @@ index 6d56d528f7..1a5bbc7e8c 100644
 +        if (do_esync())
 +            queue->esync_fd = esync_create_fd( 0, 0 );
 +
-+	thread->queue = queue;
++        thread->queue = queue;
      }
      if (new_input)
      {

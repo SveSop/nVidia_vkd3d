@@ -1,0 +1,37 @@
+diff --git a/server/esync.c b/server/esync.c
+--- a/server/esync.c
++++ b/server/esync.c
+@@ -136,6 +136,7 @@
+     directory_link_name,       /* link_name */
+     default_unlink_name,       /* unlink_name */
+     no_open_file,              /* open_file */
++    no_alloc_handle,           /* alloc_handle */
+     no_close_handle,           /* close_handle */
+     esync_destroy              /* destroy */
+ };
+diff --git a/dlls/ntdll/directory.c b/dlls/ntdll/directory.c
+--- a/dlls/ntdll/directory.c
++++ b/dlls/ntdll/directory.c
+@@ -2645,8 +2645,9 @@
+         {
+             if (!stat( unix_name, &st ))
+             {
++                /* creation fails with STATUS_ACCESS_DENIED for the root of the drive */
+                 if (disposition == FILE_CREATE)
+-                    return STATUS_OBJECT_NAME_COLLISION;
++                    return name_len ? STATUS_OBJECT_NAME_COLLISION : STATUS_ACCESS_DENIED;
+                 return STATUS_SUCCESS;
+             }
+         }
+diff --git a/libs/wine/Makefile.in b/libs/wine/Makefile.in
+--- a/libs/wine/Makefile.in	2018-12-31 17:22:05.106140641 +0100
++++ b/libs/wine/Makefile.in	2018-12-31 17:19:59.245541883 +0100
+@@ -31,7 +31,7 @@
+ libwine_DEPS = $(LIBWINE_DEPENDS)
+ 
+ version.c: dummy
+-	version=`(GIT_DIR=$(top_srcdir)/.git git describe HEAD 2>/dev/null || echo "wine-$(PACKAGE_VERSION)") | sed -n -e '$$s/\(.*\)/const char wine_build[] = "\1  (Staging)";/p'` && (echo $$version | cmp -s - $@) || echo $$version >$@ || (rm -f $@ && exit 1)
++	version=`(GIT_DIR=$(top_srcdir)/.git git describe HEAD 2>/dev/null || echo "wine-$(PACKAGE_VERSION)") | sed -n -e '$$s/\(.*\)/const char wine_build[] = "\1  ( Staging Esync )";/p'` && (echo $$version | cmp -s - $@) || echo $$version >$@ || (rm -f $@ && exit 1)
+ 
+ dummy:
+ .PHONY: dummy
