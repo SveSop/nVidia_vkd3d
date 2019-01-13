@@ -253,7 +253,7 @@ index 6a40da5527..37238693b9 100644
  static void terminate_process( struct process *process, struct thread *skip, int exit_code );
  
  static const struct object_ops process_ops =
-@@ -653,9 +653,10 @@ static int process_signaled( struct object *obj, struct wait_queue_entry *entry
+@@ -652,9 +652,10 @@ static int process_signaled( struct object *obj, struct wait_queue_entry *entry
      return !process->running_threads;
  }
  

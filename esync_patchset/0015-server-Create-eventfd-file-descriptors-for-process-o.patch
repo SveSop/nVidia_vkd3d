@@ -139,7 +139,7 @@ index deb5b4643c..6a40da5527 100644
      set_fd_events( process->msg_fd, POLLIN );  /* start listening to events */
      return process;
  
-@@ -621,6 +627,9 @@ static void process_destroy( struct object *obj )
+@@ -620,6 +626,9 @@ static void process_destroy( struct object *obj )
      if (process->id) free_ptid( process->id );
      if (process->token) release_object( process->token );
      free( process->dir_cache );
@@ -149,7 +149,7 @@ index deb5b4643c..6a40da5527 100644
  }
  
  /* dump a process on stdout for debugging purposes */
-@@ -644,6 +653,12 @@ static int process_signaled( struct object *obj, struct wait_queue_entry *entry
+@@ -643,6 +652,12 @@ static int process_signaled( struct object *obj, struct wait_queue_entry *entry
      return !process->running_threads;
  }
  
