@@ -40,7 +40,7 @@ diff --git a/dlls/ntdll/ntdll.spec b/dlls/ntdll/ntdll.spec
 index 87b5d7078f..2c2445a58a 100644
 --- a/dlls/ntdll/ntdll.spec
 +++ b/dlls/ntdll/ntdll.spec
-@@ -1530,5 +1530,7 @@
+@@ -1532,5 +1532,7 @@
  @ cdecl wine_nt_to_unix_file_name(ptr ptr long long)
  @ cdecl wine_unix_to_nt_file_name(ptr ptr)
  
