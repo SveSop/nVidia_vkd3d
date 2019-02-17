@@ -117,7 +117,7 @@ diff --git a/include/wine/server_protocol.h b/include/wine/server_protocol.h
 index cbfa802689..317fb9dc58 100644
 --- a/include/wine/server_protocol.h
 +++ b/include/wine/server_protocol.h
-@@ -5891,13 +5891,15 @@ struct create_esync_request
+@@ -5892,13 +5892,15 @@ struct create_esync_request
      unsigned int access;
      int          initval;
      int          flags;
@@ -205,7 +205,7 @@ diff --git a/server/protocol.def b/server/protocol.def
 index 5880fa1f64..81035875fb 100644
 --- a/server/protocol.def
 +++ b/server/protocol.def
-@@ -3997,9 +3997,11 @@ struct handle_info
+@@ -3998,9 +3998,11 @@ struct handle_info
      unsigned int access;        /* wanted access rights */
      int          initval;       /* initial value */
      int          flags;         /* flags (EFD_SEMAPHORE or 0) */

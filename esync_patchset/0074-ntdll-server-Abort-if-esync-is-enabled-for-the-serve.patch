@@ -65,7 +65,7 @@ diff --git a/dlls/ntdll/thread.c b/dlls/ntdll/thread.c
 index cd94e56b1d..99aaf29a5d 100644
 --- a/dlls/ntdll/thread.c
 +++ b/dlls/ntdll/thread.c
-@@ -564,8 +564,7 @@ void thread_init(void)
+@@ -356,8 +356,7 @@ void thread_init(void)
      __wine_user_shared_data();
      fill_cpu_info();
  

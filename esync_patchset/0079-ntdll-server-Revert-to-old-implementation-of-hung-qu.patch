@@ -113,7 +113,7 @@ diff --git a/include/wine/server_protocol.h b/include/wine/server_protocol.h
 index 9eac19ac33..69501ab07b 100644
 --- a/include/wine/server_protocol.h
 +++ b/include/wine/server_protocol.h
-@@ -5948,6 +5948,17 @@ struct get_esync_apc_fd_reply
+@@ -5949,6 +5949,17 @@ struct get_esync_apc_fd_reply
      struct reply_header __header;
  };
  
@@ -131,7 +131,7 @@ index 9eac19ac33..69501ab07b 100644
  enum esync_type
  {
      ESYNC_SEMAPHORE = 1,
-@@ -6272,6 +6283,7 @@ enum request
+@@ -6273,6 +6284,7 @@ enum request
      REQ_open_esync,
      REQ_get_esync_fd,
      REQ_get_esync_apc_fd,
@@ -139,7 +139,7 @@ index 9eac19ac33..69501ab07b 100644
      REQ_NB_REQUESTS
  };
  
-@@ -6589,6 +6601,7 @@ union generic_request
+@@ -6590,6 +6602,7 @@ union generic_request
      struct open_esync_request open_esync_request;
      struct get_esync_fd_request get_esync_fd_request;
      struct get_esync_apc_fd_request get_esync_apc_fd_request;
@@ -147,22 +147,22 @@ index 9eac19ac33..69501ab07b 100644
  };
  union generic_reply
  {
-@@ -6904,8 +6917,9 @@ union generic_reply
+@@ -6905,8 +6918,9 @@ union generic_reply
      struct open_esync_reply open_esync_reply;
      struct get_esync_fd_reply get_esync_fd_reply;
      struct get_esync_apc_fd_reply get_esync_apc_fd_reply;
 +    struct esync_msgwait_reply esync_msgwait_reply;
  };
  
--#define SERVER_PROTOCOL_VERSION 576
-+#define SERVER_PROTOCOL_VERSION 577
+-#define SERVER_PROTOCOL_VERSION 577
++#define SERVER_PROTOCOL_VERSION 578
  
  #endif /* __WINE_WINE_SERVER_PROTOCOL_H */
 diff --git a/server/protocol.def b/server/protocol.def
 index e79c5fe8fd..4caece2185 100644
 --- a/server/protocol.def
 +++ b/server/protocol.def
-@@ -4028,7 +4028,11 @@ struct handle_info
+@@ -4029,7 +4029,11 @@ struct handle_info
  
  /* Retrieve the fd to wait on for user APCs. */
  @REQ(get_esync_apc_fd)

@@ -12,7 +12,7 @@ diff --git a/server/esync.c b/server/esync.c
 diff --git a/dlls/ntdll/directory.c b/dlls/ntdll/directory.c
 --- a/dlls/ntdll/directory.c
 +++ b/dlls/ntdll/directory.c
-@@ -2645,8 +2645,9 @@
+@@ -2637,8 +2637,9 @@
          {
              if (!stat( unix_name, &st ))
              {

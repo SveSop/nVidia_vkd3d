@@ -19,7 +19,7 @@ diff --git a/include/wine/server_protocol.h b/include/wine/server_protocol.h
 index 0e85d1a082..98470eca3c 100644
 --- a/include/wine/server_protocol.h
 +++ b/include/wine/server_protocol.h
-@@ -5885,6 +5885,22 @@ struct terminate_job_reply
+@@ -5886,6 +5886,22 @@ struct resume_process_reply
  };
  
  
@@ -42,7 +42,7 @@ index 0e85d1a082..98470eca3c 100644
  enum request
  {
      REQ_new_process,
-@@ -6193,6 +6209,7 @@ enum request
+@@ -6194,6 +6210,7 @@ enum request
      REQ_get_system_info,
      REQ_suspend_process,
      REQ_resume_process,
@@ -50,7 +50,7 @@ index 0e85d1a082..98470eca3c 100644
      REQ_NB_REQUESTS
  };
  
-@@ -6506,6 +6523,7 @@ union generic_request
+@@ -6507,6 +6524,7 @@ union generic_request
      struct get_system_info_request get_system_info_request;
      struct suspend_process_request suspend_process_request;
      struct resume_process_request resume_process_request;
@@ -58,14 +58,14 @@ index 0e85d1a082..98470eca3c 100644
  };
  union generic_reply
  {
-@@ -6817,6 +6835,7 @@ union generic_reply
+@@ -6818,6 +6836,7 @@ union generic_reply
      struct get_system_info_reply get_system_info_reply;
      struct suspend_process_reply suspend_process_reply;
      struct resume_process_reply resume_process_reply;
 +    struct create_esync_reply create_esync_reply;
  };
  
- #define SERVER_PROTOCOL_VERSION 572
+ #define SERVER_PROTOCOL_VERSION 573
 diff --git a/server/Makefile.in b/server/Makefile.in
 index aaaa8d34d5..5d96d22774 100644
 --- a/server/Makefile.in
@@ -224,7 +224,7 @@ diff --git a/server/protocol.def b/server/protocol.def
 index 6e02fbc501..b743674ebd 100644
 --- a/server/protocol.def
 +++ b/server/protocol.def
-@@ -3991,3 +3991,13 @@ struct handle_info
+@@ -3992,3 +3992,13 @@ struct handle_info
  @REQ(resume_process)
      obj_handle_t handle;       /* process handle */
  @END

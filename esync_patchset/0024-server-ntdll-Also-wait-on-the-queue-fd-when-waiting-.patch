@@ -148,7 +148,7 @@ diff --git a/include/wine/server_protocol.h b/include/wine/server_protocol.h
 index 554fa10835..dc9705424f 100644
 --- a/include/wine/server_protocol.h
 +++ b/include/wine/server_protocol.h
-@@ -5909,6 +5909,17 @@ struct get_esync_fd_request
+@@ -5910,6 +5910,17 @@ struct get_esync_fd_request
  struct get_esync_fd_reply
  {
      struct reply_header __header;
@@ -269,7 +269,7 @@ diff --git a/server/protocol.def b/server/protocol.def
 index 250590573e..6ef953303b 100644
 --- a/server/protocol.def
 +++ b/server/protocol.def
-@@ -4006,4 +4006,14 @@ struct handle_info
+@@ -4007,4 +4007,14 @@ struct handle_info
  @REQ(get_esync_fd)
      obj_handle_t handle;        /* handle to the object */
  @REPLY

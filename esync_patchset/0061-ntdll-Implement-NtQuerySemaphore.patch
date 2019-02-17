@@ -64,7 +64,7 @@ diff --git a/dlls/ntdll/sync.c b/dlls/ntdll/sync.c
 index 9b2b5614ba..dd9bf4435f 100644
 --- a/dlls/ntdll/sync.c
 +++ b/dlls/ntdll/sync.c
-@@ -384,6 +384,9 @@ NTSTATUS WINAPI NtQuerySemaphore( HANDLE handle, SEMAPHORE_INFORMATION_CLASS cla
+@@ -305,6 +305,9 @@ NTSTATUS WINAPI NtQuerySemaphore( HANDLE handle, SEMAPHORE_INFORMATION_CLASS cla
      NTSTATUS ret;
      SEMAPHORE_BASIC_INFORMATION *out = info;
  

@@ -208,7 +208,7 @@ diff --git a/include/wine/server_protocol.h b/include/wine/server_protocol.h
 index dff6c7c960..9eac19ac33 100644
 --- a/include/wine/server_protocol.h
 +++ b/include/wine/server_protocol.h
-@@ -5891,7 +5891,9 @@ struct create_esync_request
+@@ -5892,7 +5892,9 @@ struct create_esync_request
      unsigned int access;
      int          initval;
      int          type;
@@ -218,12 +218,12 @@ index dff6c7c960..9eac19ac33 100644
  };
  struct create_esync_reply
  {
-@@ -6904,6 +6906,6 @@ union generic_reply
+@@ -6905,6 +6907,6 @@ union generic_reply
      struct get_esync_apc_fd_reply get_esync_apc_fd_reply;
  };
  
--#define SERVER_PROTOCOL_VERSION 575
-+#define SERVER_PROTOCOL_VERSION 576
+-#define SERVER_PROTOCOL_VERSION 576
++#define SERVER_PROTOCOL_VERSION 577
  
  #endif /* __WINE_WINE_SERVER_PROTOCOL_H */
 diff --git a/server/esync.c b/server/esync.c
@@ -398,7 +398,7 @@ diff --git a/server/protocol.def b/server/protocol.def
 index 6be50e0186..e79c5fe8fd 100644
 --- a/server/protocol.def
 +++ b/server/protocol.def
-@@ -3997,6 +3997,7 @@ struct handle_info
+@@ -3998,6 +3998,7 @@ struct handle_info
      unsigned int access;        /* wanted access rights */
      int          initval;       /* initial value */
      int          type;          /* type of esync object (see below) */

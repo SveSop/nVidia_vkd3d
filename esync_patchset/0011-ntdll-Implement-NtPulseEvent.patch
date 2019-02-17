@@ -56,7 +56,7 @@ diff --git a/dlls/ntdll/sync.c b/dlls/ntdll/sync.c
 index 2e9142290d..754e9e0d57 100644
 --- a/dlls/ntdll/sync.c
 +++ b/dlls/ntdll/sync.c
-@@ -556,6 +556,9 @@ NTSTATUS WINAPI NtPulseEvent( HANDLE handle, PULONG PulseCount )
+@@ -477,6 +477,9 @@ NTSTATUS WINAPI NtPulseEvent( HANDLE handle, PULONG PulseCount )
  {
      NTSTATUS ret;
  

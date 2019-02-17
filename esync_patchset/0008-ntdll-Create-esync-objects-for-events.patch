@@ -86,7 +86,7 @@ diff --git a/dlls/ntdll/sync.c b/dlls/ntdll/sync.c
 index 7955e540aa..84abb0d205 100644
 --- a/dlls/ntdll/sync.c
 +++ b/dlls/ntdll/sync.c
-@@ -444,6 +444,9 @@ NTSTATUS WINAPI NtCreateEvent( PHANDLE EventHandle, ACCESS_MASK DesiredAccess,
+@@ -365,6 +365,9 @@ NTSTATUS WINAPI NtCreateEvent( PHANDLE EventHandle, ACCESS_MASK DesiredAccess,
      data_size_t len;
      struct object_attributes *objattr;
  

@@ -31,7 +31,7 @@ diff --git a/include/wine/server_protocol.h b/include/wine/server_protocol.h
 index 31619b9a48..1ead5f7ad1 100644
 --- a/include/wine/server_protocol.h
 +++ b/include/wine/server_protocol.h
-@@ -5900,6 +5900,8 @@ struct create_esync_reply
+@@ -5901,6 +5901,8 @@ struct create_esync_reply
      struct reply_header __header;
      obj_handle_t handle;
      int          type;
@@ -40,7 +40,7 @@ index 31619b9a48..1ead5f7ad1 100644
  };
  
  
-@@ -5918,6 +5920,8 @@ struct open_esync_reply
+@@ -5919,6 +5921,8 @@ struct open_esync_reply
      struct reply_header __header;
      obj_handle_t handle;
      int          type;
@@ -206,7 +206,7 @@ diff --git a/server/protocol.def b/server/protocol.def
 index f22f8ce761..8b36b58a3f 100644
 --- a/server/protocol.def
 +++ b/server/protocol.def
-@@ -4002,6 +4002,7 @@ struct handle_info
+@@ -4003,6 +4003,7 @@ struct handle_info
  @REPLY
      obj_handle_t handle;        /* handle to the object */
      int          type;          /* type of esync object (see below) */
@@ -214,7 +214,7 @@ index f22f8ce761..8b36b58a3f 100644
  @END
  
  /* Open an esync object */
-@@ -4014,6 +4015,7 @@ struct handle_info
+@@ -4015,6 +4016,7 @@ struct handle_info
  @REPLY
      obj_handle_t handle;        /* handle to the event */
      int          type;          /* type of esync object (above) */

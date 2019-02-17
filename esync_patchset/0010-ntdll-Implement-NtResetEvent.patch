@@ -52,7 +52,7 @@ diff --git a/dlls/ntdll/sync.c b/dlls/ntdll/sync.c
 index c8047bfa3e..2e9142290d 100644
 --- a/dlls/ntdll/sync.c
 +++ b/dlls/ntdll/sync.c
-@@ -519,6 +519,9 @@ NTSTATUS WINAPI NtResetEvent( HANDLE handle, PULONG NumberOfThreadsReleased )
+@@ -440,6 +440,9 @@ NTSTATUS WINAPI NtResetEvent( HANDLE handle, PULONG NumberOfThreadsReleased )
  {
      NTSTATUS ret;
  

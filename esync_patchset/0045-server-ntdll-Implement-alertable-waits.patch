@@ -203,7 +203,7 @@ diff --git a/dlls/ntdll/ntdll_misc.h b/dlls/ntdll/ntdll_misc.h
 index 0ce1f32b70..ca82a794bd 100644
 --- a/dlls/ntdll/ntdll_misc.h
 +++ b/dlls/ntdll/ntdll_misc.h
-@@ -287,6 +287,7 @@ struct ntdll_thread_data
+@@ -288,6 +288,7 @@ struct ntdll_thread_data
      pthread_t          pthread_id;    /* pthread thread id */
      void              *pthread_stack; /* pthread stack */
      int                esync_queue_fd;/* fd to wait on for driver events */
@@ -215,7 +215,7 @@ diff --git a/dlls/ntdll/thread.c b/dlls/ntdll/thread.c
 index 3fd50e5065..cd94e56b1d 100644
 --- a/dlls/ntdll/thread.c
 +++ b/dlls/ntdll/thread.c
-@@ -523,6 +523,7 @@ void thread_init(void)
+@@ -330,6 +330,7 @@ void thread_init(void)
      thread_data->wait_fd[1] = -1;
      thread_data->debug_info = &debug_info;
      thread_data->esync_queue_fd = -1;
@@ -223,7 +223,7 @@ index 3fd50e5065..cd94e56b1d 100644
  
      signal_init_thread( teb );
      virtual_init_threading();
-@@ -841,6 +842,7 @@ NTSTATUS WINAPI RtlCreateUserThread( HANDLE process, SECURITY_DESCRIPTOR *descr,
+@@ -706,6 +707,7 @@ NTSTATUS WINAPI RtlCreateUserThread( HANDLE process, SECURITY_DESCRIPTOR *descr,
      thread_data->wait_fd[1]  = -1;
      thread_data->start_stack = (char *)teb->Tib.StackBase;
      thread_data->esync_queue_fd = -1;
@@ -235,7 +235,7 @@ diff --git a/include/wine/server_protocol.h b/include/wine/server_protocol.h
 index d05441b1d3..25e2b897df 100644
 --- a/include/wine/server_protocol.h
 +++ b/include/wine/server_protocol.h
-@@ -5937,6 +5937,17 @@ struct get_esync_fd_reply
+@@ -5938,6 +5938,17 @@ struct get_esync_fd_reply
      unsigned int shm_idx;
  };
  
@@ -253,7 +253,7 @@ index d05441b1d3..25e2b897df 100644
  enum esync_type
  {
      ESYNC_SEMAPHORE = 1,
-@@ -6260,6 +6271,7 @@ enum request
+@@ -6261,6 +6272,7 @@ enum request
      REQ_create_esync,
      REQ_open_esync,
      REQ_get_esync_fd,
@@ -261,7 +261,7 @@ index d05441b1d3..25e2b897df 100644
      REQ_NB_REQUESTS
  };
  
-@@ -6576,6 +6588,7 @@ union generic_request
+@@ -6577,6 +6589,7 @@ union generic_request
      struct create_esync_request create_esync_request;
      struct open_esync_request open_esync_request;
      struct get_esync_fd_request get_esync_fd_request;
@@ -269,15 +269,15 @@ index d05441b1d3..25e2b897df 100644
  };
  union generic_reply
  {
-@@ -6890,8 +6903,9 @@ union generic_reply
+@@ -6891,8 +6904,9 @@ union generic_reply
      struct create_esync_reply create_esync_reply;
      struct open_esync_reply open_esync_reply;
      struct get_esync_fd_reply get_esync_fd_reply;
 +    struct get_esync_apc_fd_reply get_esync_apc_fd_reply;
  };
  
--#define SERVER_PROTOCOL_VERSION 573
-+#define SERVER_PROTOCOL_VERSION 574
+-#define SERVER_PROTOCOL_VERSION 574
++#define SERVER_PROTOCOL_VERSION 575
  
  #endif /* __WINE_WINE_SERVER_PROTOCOL_H */
 diff --git a/server/esync.c b/server/esync.c
@@ -340,7 +340,7 @@ diff --git a/server/protocol.def b/server/protocol.def
 index 2705dce5a1..c13c945de7 100644
 --- a/server/protocol.def
 +++ b/server/protocol.def
-@@ -4026,6 +4026,11 @@ struct handle_info
+@@ -4027,6 +4027,11 @@ struct handle_info
      unsigned int shm_idx;       /* this object's index into the shm section */
  @END
  
