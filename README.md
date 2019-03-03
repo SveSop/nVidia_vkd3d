@@ -2,10 +2,12 @@
 nVidia patches &amp; hacks for vkd3d and wine
 
 **Patches for wine:**  
-`vkd3d_vsync_hack.patch`:		Added patch to force vsync off for d3d12 when using vkd3d  
 `superposition_hack.patch`:		Fixes superposition w/wined3d on some presets  
 `use_clock_monotonic.patch`:		Make wine use "CLOCK_MONOTONIC" instead of "CLOCK_MONOTONIC_RAW"  
 `winecfg-Toggle-upstream-CSMT-implementation.patch`: Change "Toggle CSMT logic"  
+`Update_OpenCL.patch`:			Wine OpenCL library support update to OpenCL2.1
+`woff-hack.patch`:			Vulkan child window rendering patch
+`LAA-Staging.patch`:			Large Address Aware patch for wine-staging.
  
 Patches wine source. Need to recompile wine.  
 

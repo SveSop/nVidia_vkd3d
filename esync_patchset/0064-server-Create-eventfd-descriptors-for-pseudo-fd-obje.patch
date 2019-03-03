@@ -107,7 +107,7 @@ diff --git a/server/named_pipe.c b/server/named_pipe.c
 index 3be5d7968e..925ae5ebed 100644
 --- a/server/named_pipe.c
 +++ b/server/named_pipe.c
-@@ -162,7 +162,7 @@ static const struct object_ops pipe_server_ops =
+@@ -161,7 +161,7 @@ static const struct object_ops pipe_server_ops =
      add_queue,                    /* add_queue */
      remove_queue,                 /* remove_queue */
      default_fd_signaled,          /* signaled */
@@ -116,7 +116,7 @@ index 3be5d7968e..925ae5ebed 100644
      no_satisfied,                 /* satisfied */
      no_signal,                    /* signal */
      pipe_end_get_fd,              /* get_fd */
-@@ -205,7 +205,7 @@ static const struct object_ops pipe_client_ops =
+@@ -204,7 +204,7 @@ static const struct object_ops pipe_client_ops =
      add_queue,                    /* add_queue */
      remove_queue,                 /* remove_queue */
      default_fd_signaled,          /* signaled */
