@@ -23,3 +23,10 @@ Patch vkd3d with vkd3d_Descriptors.patch and compile.
 
 **Ubuntu users:**
 I try to maintain a git-updated vkd3d on my PPA: https://launchpad.net/~cybermax-dexter/+archive/ubuntu/vkd3d  
+
+**XAudio2**  
+xaudio2.tar.xz contains some demo samples compiled from Microsoft SDK:  
+[https://github.com/walbourn/directx-sdk-samples](https://github.com/walbourn/directx-sdk-samples)  
+
+Some runs, and some crashes. Need wine-4.3 or custom compiled wine-staging-4.3 with Linux distro libfaudio.so  
+
