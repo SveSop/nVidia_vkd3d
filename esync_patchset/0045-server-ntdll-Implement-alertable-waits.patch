@@ -235,7 +235,7 @@ diff --git a/include/wine/server_protocol.h b/include/wine/server_protocol.h
 index d05441b1d3..25e2b897df 100644
 --- a/include/wine/server_protocol.h
 +++ b/include/wine/server_protocol.h
-@@ -5938,6 +5938,17 @@ struct get_esync_fd_reply
+@@ -5940,6 +5940,17 @@ struct get_esync_fd_reply
      unsigned int shm_idx;
  };
  
@@ -253,7 +253,7 @@ index d05441b1d3..25e2b897df 100644
  enum esync_type
  {
      ESYNC_SEMAPHORE = 1,
-@@ -6261,6 +6272,7 @@ enum request
+@@ -6263,6 +6274,7 @@ enum request
      REQ_create_esync,
      REQ_open_esync,
      REQ_get_esync_fd,
@@ -261,7 +261,7 @@ index d05441b1d3..25e2b897df 100644
      REQ_NB_REQUESTS
  };
  
-@@ -6577,6 +6589,7 @@ union generic_request
+@@ -6579,6 +6591,7 @@ union generic_request
      struct create_esync_request create_esync_request;
      struct open_esync_request open_esync_request;
      struct get_esync_fd_request get_esync_fd_request;
@@ -269,15 +269,15 @@ index d05441b1d3..25e2b897df 100644
  };
  union generic_reply
  {
-@@ -6891,8 +6904,9 @@ union generic_reply
+@@ -6893,8 +6906,9 @@ union generic_reply
      struct create_esync_reply create_esync_reply;
      struct open_esync_reply open_esync_reply;
      struct get_esync_fd_reply get_esync_fd_reply;
 +    struct get_esync_apc_fd_reply get_esync_apc_fd_reply;
  };
  
--#define SERVER_PROTOCOL_VERSION 574
-+#define SERVER_PROTOCOL_VERSION 575
+-#define SERVER_PROTOCOL_VERSION 575
++#define SERVER_PROTOCOL_VERSION 576
  
  #endif /* __WINE_WINE_SERVER_PROTOCOL_H */
 diff --git a/server/esync.c b/server/esync.c
@@ -340,7 +340,7 @@ diff --git a/server/protocol.def b/server/protocol.def
 index 2705dce5a1..c13c945de7 100644
 --- a/server/protocol.def
 +++ b/server/protocol.def
-@@ -4027,6 +4027,11 @@ struct handle_info
+@@ -4029,6 +4029,11 @@ struct handle_info
      unsigned int shm_idx;       /* this object's index into the shm section */
  @END
  
@@ -372,7 +372,7 @@ index 4d398584e9..b3c31367d2 100644
  };
  
  C_ASSERT( sizeof(affinity_t) == 8 );
-@@ -2522,6 +2524,8 @@ C_ASSERT( sizeof(struct get_esync_fd_request) == 16 );
+@@ -2524,6 +2526,8 @@ C_ASSERT( sizeof(struct get_esync_fd_request) == 16 );
  C_ASSERT( FIELD_OFFSET(struct get_esync_fd_reply, type) == 8 );
  C_ASSERT( FIELD_OFFSET(struct get_esync_fd_reply, shm_idx) == 12 );
  C_ASSERT( sizeof(struct get_esync_fd_reply) == 16 );
@@ -445,7 +445,7 @@ diff --git a/server/trace.c b/server/trace.c
 index 03c537d8ab..89c4743d3d 100644
 --- a/server/trace.c
 +++ b/server/trace.c
-@@ -4711,6 +4711,10 @@ static void dump_get_esync_fd_reply( const struct get_esync_fd_reply *req )
+@@ -4716,6 +4716,10 @@ static void dump_get_esync_fd_reply( const struct get_esync_fd_reply *req )
      fprintf( stderr, ", shm_idx=%08x", req->shm_idx );
  }
  
@@ -456,7 +456,7 @@ index 03c537d8ab..89c4743d3d 100644
  static const dump_func req_dumpers[REQ_NB_REQUESTS] = {
      (dump_func)dump_new_process_request,
      (dump_func)dump_exec_process_request,
-@@ -5021,6 +5025,7 @@ static const dump_func req_dumpers[REQ_NB_REQUESTS] = {
+@@ -5026,6 +5030,7 @@ static const dump_func req_dumpers[REQ_NB_REQUESTS] = {
      (dump_func)dump_create_esync_request,
      (dump_func)dump_open_esync_request,
      (dump_func)dump_get_esync_fd_request,
@@ -464,7 +464,7 @@ index 03c537d8ab..89c4743d3d 100644
  };
  
  static const dump_func reply_dumpers[REQ_NB_REQUESTS] = {
-@@ -5333,6 +5338,7 @@ static const dump_func reply_dumpers[REQ_NB_REQUESTS] = {
+@@ -5338,6 +5343,7 @@ static const dump_func reply_dumpers[REQ_NB_REQUESTS] = {
      (dump_func)dump_create_esync_reply,
      (dump_func)dump_open_esync_reply,
      (dump_func)dump_get_esync_fd_reply,
@@ -472,7 +472,7 @@ index 03c537d8ab..89c4743d3d 100644
  };
  
  static const char * const req_names[REQ_NB_REQUESTS] = {
-@@ -5645,6 +5651,7 @@ static const char * const req_names[REQ_NB_REQUESTS] = {
+@@ -5650,6 +5656,7 @@ static const char * const req_names[REQ_NB_REQUESTS] = {
      "create_esync",
      "open_esync",
      "get_esync_fd",

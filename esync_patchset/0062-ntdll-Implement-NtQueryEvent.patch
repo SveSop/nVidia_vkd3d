@@ -65,7 +65,7 @@ diff --git a/dlls/ntdll/sync.c b/dlls/ntdll/sync.c
 index dd9bf4435f..85924ebafe 100644
 --- a/dlls/ntdll/sync.c
 +++ b/dlls/ntdll/sync.c
-@@ -511,6 +511,9 @@ NTSTATUS WINAPI NtQueryEvent( HANDLE handle, EVENT_INFORMATION_CLASS class,
+@@ -506,6 +506,9 @@ NTSTATUS WINAPI NtQueryEvent( HANDLE handle, EVENT_INFORMATION_CLASS class,
      NTSTATUS ret;
      EVENT_BASIC_INFORMATION *out = info;
  

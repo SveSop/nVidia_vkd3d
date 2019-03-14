@@ -19,7 +19,7 @@ diff --git a/include/wine/server_protocol.h b/include/wine/server_protocol.h
 index 0e85d1a082..98470eca3c 100644
 --- a/include/wine/server_protocol.h
 +++ b/include/wine/server_protocol.h
-@@ -5886,6 +5886,22 @@ struct resume_process_reply
+@@ -5888,6 +5888,22 @@ struct resume_process_reply
  };
  
  
@@ -42,7 +42,7 @@ index 0e85d1a082..98470eca3c 100644
  enum request
  {
      REQ_new_process,
-@@ -6194,6 +6210,7 @@ enum request
+@@ -6196,6 +6212,7 @@ enum request
      REQ_get_system_info,
      REQ_suspend_process,
      REQ_resume_process,
@@ -50,7 +50,7 @@ index 0e85d1a082..98470eca3c 100644
      REQ_NB_REQUESTS
  };
  
-@@ -6507,6 +6524,7 @@ union generic_request
+@@ -6509,6 +6526,7 @@ union generic_request
      struct get_system_info_request get_system_info_request;
      struct suspend_process_request suspend_process_request;
      struct resume_process_request resume_process_request;
@@ -58,14 +58,14 @@ index 0e85d1a082..98470eca3c 100644
  };
  union generic_reply
  {
-@@ -6818,6 +6836,7 @@ union generic_reply
+@@ -6820,6 +6838,7 @@ union generic_reply
      struct get_system_info_reply get_system_info_reply;
      struct suspend_process_reply suspend_process_reply;
      struct resume_process_reply resume_process_reply;
 +    struct create_esync_reply create_esync_reply;
  };
  
- #define SERVER_PROTOCOL_VERSION 573
+ #define SERVER_PROTOCOL_VERSION 574
 diff --git a/server/Makefile.in b/server/Makefile.in
 index aaaa8d34d5..5d96d22774 100644
 --- a/server/Makefile.in
@@ -224,7 +224,7 @@ diff --git a/server/protocol.def b/server/protocol.def
 index 6e02fbc501..b743674ebd 100644
 --- a/server/protocol.def
 +++ b/server/protocol.def
-@@ -3992,3 +3992,13 @@ struct handle_info
+@@ -3994,3 +3994,13 @@ struct handle_info
  @REQ(resume_process)
      obj_handle_t handle;       /* process handle */
  @END
@@ -258,7 +258,7 @@ index 4610ca6868..242143d2c3 100644
  };
  
  C_ASSERT( sizeof(affinity_t) == 8 );
-@@ -2493,6 +2495,12 @@ C_ASSERT( sizeof(struct set_job_completion_port_request) == 32 );
+@@ -2495,6 +2497,12 @@ C_ASSERT( sizeof(struct set_job_completion_port_request) == 32 );
  C_ASSERT( sizeof(struct suspend_process_request) == 16 );
  C_ASSERT( FIELD_OFFSET(struct resume_process_request, handle) == 12 );
  C_ASSERT( sizeof(struct resume_process_request) == 16 );
@@ -275,7 +275,7 @@ diff --git a/server/trace.c b/server/trace.c
 index 9a84067662..d29c16b495 100644
 --- a/server/trace.c
 +++ b/server/trace.c
-@@ -4668,6 +4668,19 @@ static void dump_terminate_job_request( const struct terminate_job_request *req
+@@ -4673,6 +4673,19 @@ static void dump_terminate_job_request( const struct terminate_job_request *req
      fprintf( stderr, " handle=%04x", req->handle );
  }
  
@@ -295,7 +295,7 @@ index 9a84067662..d29c16b495 100644
  static const dump_func req_dumpers[REQ_NB_REQUESTS] = {
      (dump_func)dump_new_process_request,
      (dump_func)dump_exec_process_request,
-@@ -4975,6 +4988,7 @@ static const dump_func req_dumpers[REQ_NB_REQUESTS] = {
+@@ -4980,6 +4993,7 @@ static const dump_func req_dumpers[REQ_NB_REQUESTS] = {
      (dump_func)dump_get_system_info_request,
      (dump_func)dump_suspend_process_request,
      (dump_func)dump_resume_process_request,
@@ -303,7 +303,7 @@ index 9a84067662..d29c16b495 100644
  };
  
  static const dump_func reply_dumpers[REQ_NB_REQUESTS] = {
-@@ -5284,6 +5298,7 @@ static const dump_func reply_dumpers[REQ_NB_REQUESTS] = {
+@@ -5289,6 +5303,7 @@ static const dump_func reply_dumpers[REQ_NB_REQUESTS] = {
      (dump_func)dump_get_system_info_reply,
      NULL,
      NULL,
@@ -311,7 +311,7 @@ index 9a84067662..d29c16b495 100644
  };
  
  static const char * const req_names[REQ_NB_REQUESTS] = {
-@@ -5593,6 +5608,7 @@ static const char * const req_names[REQ_NB_REQUESTS] = {
+@@ -5598,6 +5613,7 @@ static const char * const req_names[REQ_NB_REQUESTS] = {
      "get_system_info",
      "suspend_process",
      "resume_process",

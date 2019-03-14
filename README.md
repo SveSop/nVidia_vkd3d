@@ -5,14 +5,14 @@ nVidia patches &amp; hacks for vkd3d and wine
 `superposition_hack.patch`:		Fixes superposition w/wined3d on some presets  
 `use_clock_monotonic.patch`:		Make wine use "CLOCK_MONOTONIC" instead of "CLOCK_MONOTONIC_RAW"  
 `winecfg-Toggle-upstream-CSMT-implementation.patch`: Change "Toggle CSMT logic"  
-`Update_OpenCL.patch`:			Wine OpenCL library support update to OpenCL2.1  
 `woff-hack.patch`:			Vulkan child window rendering patch  
 `LAA-Staging.patch`:			Large Address Aware patch for wine-staging.  
  
-Patches wine source. Need to recompile wine.  
-
 **Esync_patches:**  
 Rebased complete patchset from ZFigura to patch wine-staging  
+
+**wine_opencl:**
+Wine OpenCL library support update to OpenCL1.2: [https://github.com/kytulendu/wine-opencl](https://github.com/kytulendu/wine-opencl)  
 
 
 
@@ -22,11 +22,12 @@ Download latest GIT from: https://source.winehq.org/git/vkd3d.git/
 Patch vkd3d with vkd3d_Descriptors.patch and compile.  
 
 **Ubuntu users:**
-I try to maintain a git-updated vkd3d on my PPA: https://launchpad.net/~cybermax-dexter/+archive/ubuntu/vkd3d  
+I try to maintain a git-updated vkd3d on my PPA: [https://launchpad.net/~cybermax-dexter/+archive/ubuntu/vkd3d](https://launchpad.net/~cybermax-dexter/+archive/ubuntu/vkd3d)  
 
 **XAudio2**  
 xaudio2.tar.xz contains some demo samples compiled from Microsoft SDK:  
 [https://github.com/walbourn/directx-sdk-samples](https://github.com/walbourn/directx-sdk-samples)  
 
-Some runs, and some crashes. Need wine-4.3 or custom compiled wine-staging-4.3 with Linux distro libfaudio.so  
-
+Some runs, and some crashes.  
+Need wine-4.3 or custom compiled wine-staging-4.3 with Linux distro libfaudio.so  
+Use: ./patchinstall DESTDIR="wine" --all -W xaudio2-revert -W xaudio2_CommitChanges -W xaudio2_7-WMA_support -W xaudio2_7-CreateFX-FXEcho  

@@ -52,16 +52,17 @@ diff --git a/dlls/ntdll/sync.c b/dlls/ntdll/sync.c
 index c8047bfa3e..2e9142290d 100644
 --- a/dlls/ntdll/sync.c
 +++ b/dlls/ntdll/sync.c
-@@ -440,6 +440,9 @@ NTSTATUS WINAPI NtResetEvent( HANDLE handle, PULONG NumberOfThreadsReleased )
+@@ -438,6 +438,10 @@ NTSTATUS WINAPI NtSetEvent( HANDLE handle, LONG *prev_state )
+ NTSTATUS WINAPI NtResetEvent( HANDLE handle, LONG *prev_state )
  {
      NTSTATUS ret;
- 
++
 +    if (do_esync())
 +        return esync_reset_event( handle );
 +
-     /* resetting an event can't release any thread... */
-     if (NumberOfThreadsReleased) *NumberOfThreadsReleased = 0;
- 
+     SERVER_START_REQ( event_op )
+     {
+         req->handle = wine_server_obj_handle( handle );
 -- 
 2.19.1
 

@@ -148,7 +148,7 @@ diff --git a/include/wine/server_protocol.h b/include/wine/server_protocol.h
 index 554fa10835..dc9705424f 100644
 --- a/include/wine/server_protocol.h
 +++ b/include/wine/server_protocol.h
-@@ -5910,6 +5910,17 @@ struct get_esync_fd_request
+@@ -5912,6 +5912,17 @@ struct get_esync_fd_request
  struct get_esync_fd_reply
  {
      struct reply_header __header;
@@ -269,7 +269,7 @@ diff --git a/server/protocol.def b/server/protocol.def
 index 250590573e..6ef953303b 100644
 --- a/server/protocol.def
 +++ b/server/protocol.def
-@@ -4007,4 +4007,14 @@ struct handle_info
+@@ -4009,4 +4009,14 @@ struct handle_info
  @REQ(get_esync_fd)
      obj_handle_t handle;        /* handle to the object */
  @REPLY
@@ -313,7 +313,7 @@ diff --git a/server/request.h b/server/request.h
 index 272f79dc04..ca9a83632e 100644
 --- a/server/request.h
 +++ b/server/request.h
-@@ -2505,7 +2505,8 @@ C_ASSERT( FIELD_OFFSET(struct create_esync_reply, handle) == 8 );
+@@ -2507,7 +2507,8 @@ C_ASSERT( FIELD_OFFSET(struct create_esync_reply, handle) == 8 );
  C_ASSERT( sizeof(struct create_esync_reply) == 16 );
  C_ASSERT( FIELD_OFFSET(struct get_esync_fd_request, handle) == 12 );
  C_ASSERT( sizeof(struct get_esync_fd_request) == 16 );
@@ -352,7 +352,7 @@ diff --git a/server/trace.c b/server/trace.c
 index 1806caf82f..876ca62938 100644
 --- a/server/trace.c
 +++ b/server/trace.c
-@@ -4686,6 +4686,11 @@ static void dump_get_esync_fd_request( const struct get_esync_fd_request *req )
+@@ -4691,6 +4691,11 @@ static void dump_get_esync_fd_request( const struct get_esync_fd_request *req )
      fprintf( stderr, " handle=%04x", req->handle );
  }
  
@@ -364,7 +364,7 @@ index 1806caf82f..876ca62938 100644
  static const dump_func req_dumpers[REQ_NB_REQUESTS] = {
      (dump_func)dump_new_process_request,
      (dump_func)dump_exec_process_request,
-@@ -5305,7 +5310,7 @@ static const dump_func reply_dumpers[REQ_NB_REQUESTS] = {
+@@ -5310,7 +5315,7 @@ static const dump_func reply_dumpers[REQ_NB_REQUESTS] = {
      NULL,
      NULL,
      (dump_func)dump_create_esync_reply,

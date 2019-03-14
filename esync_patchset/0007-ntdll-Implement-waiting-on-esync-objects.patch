@@ -207,7 +207,7 @@ diff --git a/dlls/ntdll/sync.c b/dlls/ntdll/sync.c
 index 2c8ef9bd6b..7955e540aa 100644
 --- a/dlls/ntdll/sync.c
 +++ b/dlls/ntdll/sync.c
-@@ -1096,6 +1096,13 @@ static NTSTATUS wait_objects( DWORD count, const HANDLE *handles,
+@@ -1089,6 +1089,13 @@ static NTSTATUS wait_objects( DWORD count, const HANDLE *handles,
  
      if (!count || count > MAXIMUM_WAIT_OBJECTS) return STATUS_INVALID_PARAMETER_1;
  

@@ -117,7 +117,7 @@ diff --git a/include/wine/server_protocol.h b/include/wine/server_protocol.h
 index cbfa802689..317fb9dc58 100644
 --- a/include/wine/server_protocol.h
 +++ b/include/wine/server_protocol.h
-@@ -5892,13 +5892,15 @@ struct create_esync_request
+@@ -5894,13 +5894,15 @@ struct create_esync_request
      unsigned int access;
      int          initval;
      int          flags;
@@ -205,7 +205,7 @@ diff --git a/server/protocol.def b/server/protocol.def
 index 5880fa1f64..81035875fb 100644
 --- a/server/protocol.def
 +++ b/server/protocol.def
-@@ -3998,9 +3998,11 @@ struct handle_info
+@@ -4000,9 +4000,11 @@ struct handle_info
      unsigned int access;        /* wanted access rights */
      int          initval;       /* initial value */
      int          flags;         /* flags (EFD_SEMAPHORE or 0) */
@@ -221,7 +221,7 @@ diff --git a/server/request.h b/server/request.h
 index ca9a83632e..1295fb8304 100644
 --- a/server/request.h
 +++ b/server/request.h
-@@ -2500,8 +2500,10 @@ C_ASSERT( sizeof(struct terminate_job_request) == 24 );
+@@ -2502,8 +2502,10 @@ C_ASSERT( sizeof(struct terminate_job_request) == 24 );
  C_ASSERT( FIELD_OFFSET(struct create_esync_request, access) == 12 );
  C_ASSERT( FIELD_OFFSET(struct create_esync_request, initval) == 16 );
  C_ASSERT( FIELD_OFFSET(struct create_esync_request, flags) == 20 );
@@ -237,7 +237,7 @@ diff --git a/server/trace.c b/server/trace.c
 index 876ca62938..0a9c8c29d5 100644
 --- a/server/trace.c
 +++ b/server/trace.c
-@@ -4673,12 +4673,14 @@ static void dump_create_esync_request( const struct create_esync_request *req )
+@@ -4678,12 +4678,14 @@ static void dump_create_esync_request( const struct create_esync_request *req )
      fprintf( stderr, " access=%08x", req->access );
      fprintf( stderr, ", initval=%d", req->initval );
      fprintf( stderr, ", flags=%d", req->flags );

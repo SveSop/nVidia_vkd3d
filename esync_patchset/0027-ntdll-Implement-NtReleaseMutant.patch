@@ -68,7 +68,7 @@ diff --git a/dlls/ntdll/sync.c b/dlls/ntdll/sync.c
 index 76004d613c..0040da4ffa 100644
 --- a/dlls/ntdll/sync.c
 +++ b/dlls/ntdll/sync.c
-@@ -596,6 +596,9 @@ NTSTATUS WINAPI NtReleaseMutant( IN HANDLE handle, OUT PLONG prev_count OPTIONAL
+@@ -591,6 +591,9 @@ NTSTATUS WINAPI NtReleaseMutant( IN HANDLE handle, OUT PLONG prev_count OPTIONAL
  {
      NTSTATUS    status;
  

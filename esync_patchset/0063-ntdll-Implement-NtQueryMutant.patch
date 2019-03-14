@@ -65,7 +65,7 @@ diff --git a/dlls/ntdll/sync.c b/dlls/ntdll/sync.c
 index 85924ebafe..a1df316691 100644
 --- a/dlls/ntdll/sync.c
 +++ b/dlls/ntdll/sync.c
-@@ -634,6 +634,9 @@ NTSTATUS WINAPI NtQueryMutant( HANDLE handle, MUTANT_INFORMATION_CLASS class,
+@@ -629,6 +629,9 @@ NTSTATUS WINAPI NtQueryMutant( HANDLE handle, MUTANT_INFORMATION_CLASS class,
      NTSTATUS ret;
      MUTANT_BASIC_INFORMATION *out = info;
  

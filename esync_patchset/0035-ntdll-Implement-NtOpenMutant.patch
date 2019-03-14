@@ -68,7 +68,7 @@ diff --git a/dlls/ntdll/sync.c b/dlls/ntdll/sync.c
 index e6951c8ea5..9b2b5614ba 100644
 --- a/dlls/ntdll/sync.c
 +++ b/dlls/ntdll/sync.c
-@@ -580,6 +580,9 @@ NTSTATUS WINAPI NtOpenMutant( HANDLE *handle, ACCESS_MASK access, const OBJECT_A
+@@ -575,6 +575,9 @@ NTSTATUS WINAPI NtOpenMutant( HANDLE *handle, ACCESS_MASK access, const OBJECT_A
  
      if ((status = validate_open_object_attributes( attr ))) return status;
  

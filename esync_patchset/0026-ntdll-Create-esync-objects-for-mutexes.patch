@@ -86,7 +86,7 @@ diff --git a/dlls/ntdll/sync.c b/dlls/ntdll/sync.c
 index 754e9e0d57..76004d613c 100644
 --- a/dlls/ntdll/sync.c
 +++ b/dlls/ntdll/sync.c
-@@ -545,6 +545,9 @@ NTSTATUS WINAPI NtCreateMutant(OUT HANDLE* MutantHandle,
+@@ -540,6 +540,9 @@ NTSTATUS WINAPI NtCreateMutant(OUT HANDLE* MutantHandle,
      data_size_t len;
      struct object_attributes *objattr;
  
@@ -100,7 +100,7 @@ diff --git a/include/wine/server_protocol.h b/include/wine/server_protocol.h
 index dc9705424f..cbfa802689 100644
 --- a/include/wine/server_protocol.h
 +++ b/include/wine/server_protocol.h
-@@ -5919,6 +5919,7 @@ enum esync_type
+@@ -5921,6 +5921,7 @@ enum esync_type
      ESYNC_SEMAPHORE = 1,
      ESYNC_AUTO_EVENT,
      ESYNC_MANUAL_EVENT,
@@ -112,7 +112,7 @@ diff --git a/server/protocol.def b/server/protocol.def
 index 6ef953303b..5880fa1f64 100644
 --- a/server/protocol.def
 +++ b/server/protocol.def
-@@ -4015,6 +4015,7 @@ enum esync_type
+@@ -4017,6 +4017,7 @@ enum esync_type
      ESYNC_SEMAPHORE = 1,
      ESYNC_AUTO_EVENT,
      ESYNC_MANUAL_EVENT,

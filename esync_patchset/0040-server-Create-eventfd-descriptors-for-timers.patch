@@ -27,7 +27,7 @@ diff --git a/include/wine/server_protocol.h b/include/wine/server_protocol.h
 index 564c4ef476..31619b9a48 100644
 --- a/include/wine/server_protocol.h
 +++ b/include/wine/server_protocol.h
-@@ -5940,6 +5940,7 @@ enum esync_type
+@@ -5942,6 +5942,7 @@ enum esync_type
      ESYNC_AUTO_EVENT,
      ESYNC_MANUAL_EVENT,
      ESYNC_MUTEX,
@@ -39,7 +39,7 @@ diff --git a/server/protocol.def b/server/protocol.def
 index bce1fcc003..f22f8ce761 100644
 --- a/server/protocol.def
 +++ b/server/protocol.def
-@@ -4030,6 +4030,7 @@ enum esync_type
+@@ -4032,6 +4032,7 @@ enum esync_type
      ESYNC_AUTO_EVENT,
      ESYNC_MANUAL_EVENT,
      ESYNC_MUTEX,

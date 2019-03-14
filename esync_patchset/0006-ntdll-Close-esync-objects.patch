@@ -56,7 +56,7 @@ diff --git a/dlls/ntdll/om.c b/dlls/ntdll/om.c
 index 0b56251348..6c74ce535d 100644
 --- a/dlls/ntdll/om.c
 +++ b/dlls/ntdll/om.c
-@@ -37,6 +37,7 @@
+@@ -34,6 +34,7 @@
  #include "windef.h"
  #include "winternl.h"
  #include "ntdll_misc.h"
@@ -64,7 +64,7 @@ index 0b56251348..6c74ce535d 100644
  #include "wine/server.h"
  #include "wine/exception.h"
  #include "wine/unicode.h"
-@@ -449,6 +450,9 @@ NTSTATUS close_handle( HANDLE handle )
+@@ -446,6 +447,9 @@ NTSTATUS close_handle( HANDLE handle )
      NTSTATUS ret;
      int fd = server_remove_fd_from_cache( handle );
  
