@@ -11,9 +11,6 @@ nVidia patches &amp; hacks for vkd3d and wine
 **Esync_patches:**  
 Rebased complete patchset from ZFigura to patch wine-staging  
 
-**wine_opencl:**
-Wine OpenCL library support update to OpenCL1.2: [https://github.com/kytulendu/wine-opencl](https://github.com/kytulendu/wine-opencl)  
-
 
 
 **Patches for vkd3d:**  
