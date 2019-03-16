@@ -31,3 +31,6 @@ xaudio2.tar.xz contains some demo samples compiled from Microsoft SDK:
 Some runs, and some crashes.  
 Need wine-4.4 or custom compiled wine-staging-4.4 with Linux distro libfaudio.so  
 Use: ./patchinstall DESTDIR="wine" --all -W xaudio2-revert -W xaudio2_CommitChanges -W xaudio2_7-WMA_support -W xaudio2_7-CreateFX-FXEcho  
+
+**Ubuntu users:**  
+You can get libfaudio + updated SDL2 from my PPA here: [https://launchpad.net/~cybermax-dexter/+archive/ubuntu/sdl2-backport](https://launchpad.net/~cybermax-dexter/+archive/ubuntu/sdl2-backport)  
