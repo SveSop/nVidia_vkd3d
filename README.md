@@ -27,6 +27,11 @@ I try to maintain a git-updated vkd3d on my PPA: [https://launchpad.net/~cyberma
 **XAudio2**  
 xaudio2.tar.xz contains some demo samples compiled from Microsoft SDK:  
 [https://github.com/walbourn/directx-sdk-samples](https://github.com/walbourn/directx-sdk-samples)  
+Stripped down to only working samples. Also removed dependency of `GetOverlappedResultEx` function as this is not supported in wine atm.  
+ - XAudio2AsyncStream.exe  
+ - XAudio2BasicSound.exe  
+ - XAudio2Enumerate.exe (Test device enumeration)  
+ - XAudio2WaveBank.exe  
 
 Some runs, and some crashes.  
 Need wine-4.4 or custom compiled wine-staging-4.4 with Linux distro libfaudio.so  
