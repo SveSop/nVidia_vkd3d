@@ -11,6 +11,9 @@ nVidia patches &amp; hacks for vkd3d and wine
 **Esync_patches:**  
 Rebased complete patchset from ZFigura to patch wine-staging  
 
+**wine_opencl:**  
+Wine OpenCL library support update to OpenCL1.2: [https://github.com/kytulendu/wine-opencl](https://github.com/kytulendu/wine-opencl)  
+
 
 
 **Patches for vkd3d:**  
@@ -26,5 +29,5 @@ xaudio2.tar.xz contains some demo samples compiled from Microsoft SDK:
 [https://github.com/walbourn/directx-sdk-samples](https://github.com/walbourn/directx-sdk-samples)  
 
 Some runs, and some crashes.  
-Need wine-4.3 or custom compiled wine-staging-4.3 with Linux distro libfaudio.so  
+Need wine-4.4 or custom compiled wine-staging-4.4 with Linux distro libfaudio.so  
 Use: ./patchinstall DESTDIR="wine" --all -W xaudio2-revert -W xaudio2_CommitChanges -W xaudio2_7-WMA_support -W xaudio2_7-CreateFX-FXEcho  
