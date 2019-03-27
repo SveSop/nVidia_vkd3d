@@ -19,7 +19,7 @@ diff --git a/configure b/configure
 index 51e3d7fc14..eb0a11ca86 100755
 --- a/configure
 +++ b/configure
-@@ -7403,6 +7403,7 @@ for ac_header in \
+@@ -7404,6 +7404,7 @@ for ac_header in \
  	sys/elf32.h \
  	sys/epoll.h \
  	sys/event.h \
@@ -27,7 +27,7 @@ index 51e3d7fc14..eb0a11ca86 100755
  	sys/exec_elf.h \
  	sys/filio.h \
  	sys/inotify.h \
-@@ -17244,6 +17245,7 @@ for ac_func in \
+@@ -17301,6 +17302,7 @@ for ac_func in \
  	pipe2 \
  	poll \
  	port_create \
@@ -35,7 +35,7 @@ index 51e3d7fc14..eb0a11ca86 100755
  	prctl \
  	pread \
  	proc_pidinfo \
-@@ -17648,6 +17650,72 @@ fi
+@@ -17705,6 +17707,72 @@ fi
  
  LIBS=$ac_save_LIBS
  
@@ -120,7 +120,7 @@ index b64d99e9d1..fae1a1a228 100644
  	sys/exec_elf.h \
  	sys/filio.h \
  	sys/inotify.h \
-@@ -2211,6 +2212,7 @@ AC_CHECK_FUNCS(\
+@@ -2212,6 +2213,7 @@ AC_CHECK_FUNCS(\
  	pipe2 \
  	poll \
  	port_create \
@@ -128,7 +128,7 @@ index b64d99e9d1..fae1a1a228 100644
  	prctl \
  	pread \
  	proc_pidinfo \
-@@ -2283,6 +2285,16 @@ AC_SEARCH_LIBS(clock_gettime, rt,
+@@ -2284,6 +2286,16 @@ AC_SEARCH_LIBS(clock_gettime, rt,
                  test "$ac_res" = "none required" || AC_SUBST(RT_LIBS,"$ac_res")])
  LIBS=$ac_save_LIBS
  

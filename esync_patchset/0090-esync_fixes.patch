@@ -5,7 +5,7 @@ diff --git a/server/esync.c b/server/esync.c
      directory_link_name,       /* link_name */
      default_unlink_name,       /* unlink_name */
      no_open_file,              /* open_file */
-+    no_alloc_handle,           /* alloc_handle */
++    no_kernel_obj_list,        /* get_kernel_obj_list */
      no_close_handle,           /* close_handle */
      esync_destroy              /* destroy */
  };
@@ -26,7 +26,7 @@ diff --git a/dlls/ntdll/directory.c b/dlls/ntdll/directory.c
 diff --git a/libs/wine/Makefile.in b/libs/wine/Makefile.in
 --- a/libs/wine/Makefile.in	2018-12-31 17:22:05.106140641 +0100
 +++ b/libs/wine/Makefile.in	2018-12-31 17:19:59.245541883 +0100
-@@ -31,7 +31,7 @@
+@@ -26,7 +26,7 @@
  libwine_DEPS = $(LIBWINE_DEPENDS)
  
  version.c: dummy

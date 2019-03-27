@@ -164,7 +164,7 @@ diff --git a/server/device.c b/server/device.c
 index ac7d88f8c2..94309ba112 100644
 --- a/server/device.c
 +++ b/server/device.c
-@@ -65,6 +65,7 @@ static const struct object_ops irp_call_ops =
+@@ -66,6 +66,7 @@ static const struct object_ops irp_call_ops =
      add_queue,                        /* add_queue */
      remove_queue,                     /* remove_queue */
      irp_call_signaled,                /* signaled */
@@ -172,7 +172,7 @@ index ac7d88f8c2..94309ba112 100644
      no_satisfied,                     /* satisfied */
      no_signal,                        /* signal */
      no_get_fd,                        /* get_fd */
-@@ -102,6 +103,7 @@ static const struct object_ops device_manager_ops =
+@@ -104,6 +105,7 @@ static const struct object_ops device_manager_ops =
      add_queue,                        /* add_queue */
      remove_queue,                     /* remove_queue */
      device_manager_signaled,          /* signaled */
@@ -180,7 +180,7 @@ index ac7d88f8c2..94309ba112 100644
      no_satisfied,                     /* satisfied */
      no_signal,                        /* signal */
      no_get_fd,                        /* get_fd */
-@@ -144,6 +146,7 @@ static const struct object_ops device_ops =
+@@ -146,6 +148,7 @@ static const struct object_ops device_ops =
      no_add_queue,                     /* add_queue */
      NULL,                             /* remove_queue */
      NULL,                             /* signaled */
@@ -188,7 +188,7 @@ index ac7d88f8c2..94309ba112 100644
      no_satisfied,                     /* satisfied */
      no_signal,                        /* signal */
      no_get_fd,                        /* get_fd */
-@@ -190,6 +193,7 @@ static const struct object_ops device_file_ops =
+@@ -192,6 +195,7 @@ static const struct object_ops device_file_ops =
      add_queue,                        /* add_queue */
      remove_queue,                     /* remove_queue */
      default_fd_signaled,              /* signaled */
@@ -232,7 +232,7 @@ diff --git a/server/event.c b/server/event.c
 index cfc0f6afc0..a85be8de3d 100644
 --- a/server/event.c
 +++ b/server/event.c
-@@ -58,6 +58,7 @@ static const struct object_ops event_ops =
+@@ -60,6 +60,7 @@ static const struct object_ops event_ops =
      add_queue,                 /* add_queue */
      remove_queue,              /* remove_queue */
      event_signaled,            /* signaled */
@@ -240,7 +240,7 @@ index cfc0f6afc0..a85be8de3d 100644
      event_satisfied,           /* satisfied */
      event_signal,              /* signal */
      no_get_fd,                 /* get_fd */
-@@ -92,6 +93,7 @@ static const struct object_ops keyed_event_ops =
+@@ -94,6 +95,7 @@ static const struct object_ops keyed_event_ops =
      add_queue,                   /* add_queue */
      remove_queue,                /* remove_queue */
      keyed_event_signaled,        /* signaled */
@@ -645,7 +645,7 @@ diff --git a/server/winstation.c b/server/winstation.c
 index a0be058652..58e2213929 100644
 --- a/server/winstation.c
 +++ b/server/winstation.c
-@@ -66,6 +66,7 @@ static const struct object_ops winstation_ops =
+@@ -65,6 +65,7 @@ static const struct object_ops winstation_ops =
      no_add_queue,                 /* add_queue */
      NULL,                         /* remove_queue */
      NULL,                         /* signaled */
@@ -653,7 +653,7 @@ index a0be058652..58e2213929 100644
      NULL,                         /* satisfied */
      no_signal,                    /* signal */
      no_get_fd,                    /* get_fd */
-@@ -90,6 +91,7 @@ static const struct object_ops desktop_ops =
+@@ -89,6 +90,7 @@ static const struct object_ops desktop_ops =
      no_add_queue,                 /* add_queue */
      NULL,                         /* remove_queue */
      NULL,                         /* signaled */

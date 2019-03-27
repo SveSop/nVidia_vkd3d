@@ -111,7 +111,7 @@ diff --git a/include/wine/server_protocol.h b/include/wine/server_protocol.h
 index 25e2b897df..dff6c7c960 100644
 --- a/include/wine/server_protocol.h
 +++ b/include/wine/server_protocol.h
-@@ -5893,10 +5893,8 @@ struct create_esync_request
+@@ -5972,10 +5972,8 @@ struct create_esync_request
      struct request_header __header;
      unsigned int access;
      int          initval;
@@ -122,12 +122,12 @@ index 25e2b897df..dff6c7c960 100644
  };
  struct create_esync_reply
  {
-@@ -6909,6 +6907,6 @@ union generic_reply
+@@ -7003,6 +7001,6 @@ union generic_reply
      struct get_esync_apc_fd_reply get_esync_apc_fd_reply;
  };
  
--#define SERVER_PROTOCOL_VERSION 576
-+#define SERVER_PROTOCOL_VERSION 577
+-#define SERVER_PROTOCOL_VERSION 579
++#define SERVER_PROTOCOL_VERSION 580
  
  #endif /* __WINE_WINE_SERVER_PROTOCOL_H */
 diff --git a/server/esync.c b/server/esync.c
@@ -171,7 +171,7 @@ diff --git a/server/protocol.def b/server/protocol.def
 index c13c945de7..6be50e0186 100644
 --- a/server/protocol.def
 +++ b/server/protocol.def
-@@ -3999,7 +3999,6 @@ struct handle_info
+@@ -4046,7 +4046,6 @@ struct handle_info
  @REQ(create_esync)
      unsigned int access;        /* wanted access rights */
      int          initval;       /* initial value */
@@ -183,7 +183,7 @@ diff --git a/server/request.h b/server/request.h
 index b3c31367d2..13b5b5f380 100644
 --- a/server/request.h
 +++ b/server/request.h
-@@ -2505,9 +2505,8 @@ C_ASSERT( FIELD_OFFSET(struct terminate_job_request, status) == 16 );
+@@ -2536,9 +2536,8 @@ C_ASSERT( FIELD_OFFSET(struct terminate_job_request, status) == 16 );
  C_ASSERT( sizeof(struct resume_process_request) == 16 );
  C_ASSERT( FIELD_OFFSET(struct create_esync_request, access) == 12 );
  C_ASSERT( FIELD_OFFSET(struct create_esync_request, initval) == 16 );
@@ -199,7 +199,7 @@ diff --git a/server/trace.c b/server/trace.c
 index 89c4743d3d..f8acbb93d6 100644
 --- a/server/trace.c
 +++ b/server/trace.c
-@@ -4677,7 +4677,6 @@ static void dump_create_esync_request( const struct create_esync_request *req )
+@@ -4719,7 +4719,6 @@ static void dump_create_esync_request( const struct create_esync_request *req )
  {
      fprintf( stderr, " access=%08x", req->access );
      fprintf( stderr, ", initval=%d", req->initval );

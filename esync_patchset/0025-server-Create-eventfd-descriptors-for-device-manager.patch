@@ -20,7 +20,7 @@ diff --git a/server/device.c b/server/device.c
 index 94309ba112..5c13a839ab 100644
 --- a/server/device.c
 +++ b/server/device.c
-@@ -38,6 +38,7 @@
+@@ -39,6 +39,7 @@
  #include "handle.h"
  #include "request.h"
  #include "process.h"
@@ -28,11 +28,11 @@ index 94309ba112..5c13a839ab 100644
  
  /* IRP object */
  
-@@ -89,10 +90,12 @@ struct device_manager
-     struct object          obj;           /* object header */
-     struct list            devices;       /* list of devices */
-     struct list            requests;      /* list of pending irps across all devices */
-+    int                    esync_fd;      /* esync file descriptor */
+@@ -91,10 +92,12 @@ struct device_manager
+     struct list            devices;        /* list of devices */
+     struct list            requests;       /* list of pending irps across all devices */
+     struct wine_rb_tree    kernel_objects; /* map of objects that have client side pointer associated */
++    int                    esync_fd;       /* esync file descriptor */
  };
  
  static void device_manager_dump( struct object *obj, int verbose );
@@ -41,7 +41,7 @@ index 94309ba112..5c13a839ab 100644
  static void device_manager_destroy( struct object *obj );
  
  static const struct object_ops device_manager_ops =
-@@ -103,7 +106,7 @@ static const struct object_ops device_manager_ops =
+@@ -105,7 +108,7 @@ static const struct object_ops device_manager_ops =
      add_queue,                        /* add_queue */
      remove_queue,                     /* remove_queue */
      device_manager_signaled,          /* signaled */
@@ -50,7 +50,7 @@ index 94309ba112..5c13a839ab 100644
      no_satisfied,                     /* satisfied */
      no_signal,                        /* signal */
      no_get_fd,                        /* get_fd */
-@@ -581,6 +584,9 @@ static void delete_file( struct device_file *file )
+@@ -659,6 +662,9 @@ static void delete_file( struct device_file *file )
      /* terminate all pending requests */
      LIST_FOR_EACH_ENTRY_SAFE( irp, next, &file->requests, struct irp_call, dev_entry )
      {
@@ -60,7 +60,7 @@ index 94309ba112..5c13a839ab 100644
          list_remove( &irp->mgr_entry );
          set_irp_result( irp, STATUS_FILE_DELETED, NULL, 0, 0 );
      }
-@@ -617,6 +623,13 @@ static int device_manager_signaled( struct object *obj, struct wait_queue_entry
+@@ -695,6 +701,13 @@ static int device_manager_signaled( struct object *obj, struct wait_queue_entry
      return !list_empty( &manager->requests );
  }
  
@@ -74,7 +74,7 @@ index 94309ba112..5c13a839ab 100644
  static void device_manager_destroy( struct object *obj )
  {
      struct device_manager *manager = (struct device_manager *)obj;
-@@ -628,6 +641,9 @@ static void device_manager_destroy( struct object *obj )
+@@ -716,6 +729,9 @@ static void device_manager_destroy( struct object *obj )
          grab_object( &device->obj );
          delete_device( device );
          release_object( &device->obj );
@@ -82,22 +82,22 @@ index 94309ba112..5c13a839ab 100644
 +        if (do_esync())
 +            close( manager->esync_fd );
      }
- }
  
-@@ -639,6 +655,9 @@ static struct device_manager *create_device_manager(void)
-     {
+     while ((ptr = list_head( &manager->requests )))
+@@ -736,6 +752,9 @@ static struct device_manager *create_device_manager(void)
          list_init( &manager->devices );
          list_init( &manager->requests );
-+
+         wine_rb_init( &manager->kernel_objects, compare_kernel_object );
++ 
 +        if (do_esync())
-+            manager->esync_fd = esync_create_fd( 0, 0 );
++            close( manager->esync_fd );
      }
      return manager;
  }
-@@ -745,6 +764,9 @@ DECL_HANDLER(get_next_device_request)
-             iosb->in_size = 0;
+@@ -874,6 +893,9 @@ DECL_HANDLER(get_next_device_request)
              list_remove( &irp->mgr_entry );
              list_init( &irp->mgr_entry );
+             if (!irp->file) release_object( irp ); /* no longer on manager queue */
 +
 +            if (do_esync() && list_empty( &manager->requests ))
 +                esync_clear( manager->esync_fd );
