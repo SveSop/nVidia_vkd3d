@@ -16,7 +16,7 @@ Rebased complete patchset from ZFigura to patch wine-staging
 **Patches for vkd3d:**  
 vkd3d_Descriptors.patch  
 vkd3d_command_queue.patch  
-These patches are [b]needed[/b] for World of Warcraft 8.1.x  
+These patches are needed for World of Warcraft 8.1.x  
 Download latest GIT from: https://source.winehq.org/git/vkd3d.git/  
 Patch vkd3d with vkd3d_Descriptors.patch + vkd3d_command_queue.patch and compile.  
 
