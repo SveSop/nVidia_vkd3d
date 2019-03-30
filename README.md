@@ -32,7 +32,7 @@ Stripped down to only working samples. Also removed dependency of `GetOverlapped
  - XAudio2Enumerate.exe (Test device enumeration)  
  - XAudio2WaveBank.exe  
 
-Need wine-4.4 or custom compiled wine-staging-4.4 with Linux distro libfaudio.so  
+Need wine-4.5 or custom compiled wine-staging-4.5 with Linux distro libfaudio.so  
 Use: ./patchinstall DESTDIR="wine" --all -W xaudio2-revert -W xaudio2_CommitChanges -W xaudio2_7-WMA_support -W xaudio2_7-CreateFX-FXEcho  
 
 **Ubuntu users:**  
