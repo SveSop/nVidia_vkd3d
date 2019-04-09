@@ -204,7 +204,7 @@ diff --git a/dlls/ntdll/ntdll.spec b/dlls/ntdll/ntdll.spec
 index 1f30788f857..4fb4fdd2226 100644
 --- a/dlls/ntdll/ntdll.spec
 +++ b/dlls/ntdll/ntdll.spec
-@@ -1509,6 +1509,7 @@
+@@ -1517,6 +1517,7 @@
  
  # Virtual memory
  @ cdecl __wine_locked_recvmsg(long ptr long)

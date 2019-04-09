@@ -9,8 +9,7 @@ nVidia patches &amp; hacks for vkd3d and wine
 `LAA-Staging.patch`:			Large Address Aware patch for wine-staging.  
  
 **Esync_patches:**  
-Rebased complete patchset from ZFigura to patch wine-staging  
-
+Implemented with [https://github.com/wine-staging/wine-staging/commit/553986fdfb111914f793ff1487d53af022e4be19](https://github.com/wine-staging/wine-staging/commit/553986fdfb111914f793ff1487d53af022e4be19)  
 
 
 **Patches for vkd3d:**  
@@ -32,7 +31,7 @@ Stripped down to only working samples. Also removed dependency of `GetOverlapped
  - XAudio2Enumerate.exe (Test device enumeration)  
  - XAudio2WaveBank.exe  
 
-Need wine-4.5 or custom compiled wine-staging-4.5 with Linux distro libfaudio.so  
+Need wine-devel-4.5+ or custom compiled wine-staging-4.5 with Linux distro libfaudio.so  
 Use: ./patchinstall DESTDIR="wine" --all -W xaudio2-revert -W xaudio2_CommitChanges -W xaudio2_7-WMA_support -W xaudio2_7-CreateFX-FXEcho  
 
 **Ubuntu users:**  
