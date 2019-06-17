@@ -48,11 +48,11 @@ index 620f7b4d0ed..bd27702eaa3 100644
          if (lpBuffer->dwTotalPhys > MAXLONG) lpBuffer->dwTotalPhys = MAXLONG;
          if (lpBuffer->dwAvailPhys > MAXLONG) lpBuffer->dwAvailPhys = MAXLONG;
 diff --git a/dlls/ntdll/loader.c b/dlls/ntdll/loader.c
-index cb94c3d592b..a9b4d352c28 100644
+index 0997353..2c93ee5 100644
 --- a/dlls/ntdll/loader.c
 +++ b/dlls/ntdll/loader.c
-@@ -2135,6 +2135,127 @@ static BOOL is_valid_binary( HMODULE module, const pe_image_info_t *info )
- #endif
+@@ -2305,6 +2305,127 @@ static BOOL is_valid_binary( HMODULE module, const pe_image_info_t *info )
+     return status;
  }
  
 +/***************************************************************************
@@ -179,7 +179,7 @@ index cb94c3d592b..a9b4d352c28 100644
  
  /******************************************************************************
   *	load_native_dll  (internal)
-@@ -3720,6 +3841,7 @@ void __wine_process_init(void)
+@@ -4002,6 +4123,7 @@ void __wine_process_init(void)
      NTSTATUS status;
      ANSI_STRING func_name;
      UNICODE_STRING nt_name;
@@ -187,7 +187,7 @@ index cb94c3d592b..a9b4d352c28 100644
      void * (CDECL *init_func)(void);
      DWORD i;
  
-@@ -3774,7 +3896,11 @@ void __wine_process_init(void)
+@@ -4056,7 +4178,11 @@ void __wine_process_init(void)
      version_init( wm->ldr.FullDllName.Buffer );
      user_shared_data_init();
      hidden_exports_init( wm->ldr.FullDllName.Buffer );
@@ -204,7 +204,7 @@ diff --git a/dlls/ntdll/ntdll.spec b/dlls/ntdll/ntdll.spec
 index 1f30788f857..4fb4fdd2226 100644
 --- a/dlls/ntdll/ntdll.spec
 +++ b/dlls/ntdll/ntdll.spec
-@@ -1517,6 +1517,7 @@
+@@ -1518,6 +1518,7 @@
  
  # Virtual memory
  @ cdecl __wine_locked_recvmsg(long ptr long)
@@ -216,7 +216,7 @@ diff --git a/dlls/ntdll/ntdll_misc.h b/dlls/ntdll/ntdll_misc.h
 index 201115c6f1d..7484efe36d6 100644
 --- a/dlls/ntdll/ntdll_misc.h
 +++ b/dlls/ntdll/ntdll_misc.h
-@@ -196,7 +196,7 @@ extern SIZE_T virtual_uninterrupted_read_memory( const void *addr, void *buffer,
+@@ -197,7 +197,7 @@ extern SIZE_T virtual_uninterrupted_read_memory( const void *addr, void *buffer,
  extern NTSTATUS virtual_uninterrupted_write_memory( void *addr, const void *buffer, SIZE_T size ) DECLSPEC_HIDDEN;
  extern void VIRTUAL_SetForceExec( BOOL enable ) DECLSPEC_HIDDEN;
  extern void virtual_release_address_space(void) DECLSPEC_HIDDEN;
