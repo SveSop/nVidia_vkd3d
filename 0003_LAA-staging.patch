@@ -179,15 +179,15 @@ index 0997353..2c93ee5 100644
  
  /******************************************************************************
   *	load_native_dll  (internal)
-@@ -4002,6 +4123,7 @@ void __wine_process_init(void)
+@@ -4013,6 +4134,7 @@ void __wine_process_init(void)
      NTSTATUS status;
      ANSI_STRING func_name;
      UNICODE_STRING nt_name;
 +    BOOL force_large_address_aware = FALSE;
      void * (CDECL *init_func)(void);
+     INITIAL_TEB stack;
      DWORD i;
- 
-@@ -4056,7 +4178,11 @@ void __wine_process_init(void)
+@@ -4068,7 +4190,11 @@ void __wine_process_init(void)
      version_init( wm->ldr.FullDllName.Buffer );
      user_shared_data_init();
      hidden_exports_init( wm->ldr.FullDllName.Buffer );
@@ -204,7 +204,7 @@ diff --git a/dlls/ntdll/ntdll.spec b/dlls/ntdll/ntdll.spec
 index 1f30788f857..4fb4fdd2226 100644
 --- a/dlls/ntdll/ntdll.spec
 +++ b/dlls/ntdll/ntdll.spec
-@@ -1518,6 +1518,7 @@
+@@ -1545,6 +1545,7 @@
  
  # Virtual memory
  @ cdecl __wine_locked_recvmsg(long ptr long)
@@ -216,7 +216,7 @@ diff --git a/dlls/ntdll/ntdll_misc.h b/dlls/ntdll/ntdll_misc.h
 index 201115c6f1d..7484efe36d6 100644
 --- a/dlls/ntdll/ntdll_misc.h
 +++ b/dlls/ntdll/ntdll_misc.h
-@@ -197,7 +197,7 @@ extern SIZE_T virtual_uninterrupted_read_memory( const void *addr, void *buffer,
+@@ -194,7 +194,7 @@ extern SIZE_T virtual_uninterrupted_read_memory( const void *addr, void *buffer,
  extern NTSTATUS virtual_uninterrupted_write_memory( void *addr, const void *buffer, SIZE_T size ) DECLSPEC_HIDDEN;
  extern void VIRTUAL_SetForceExec( BOOL enable ) DECLSPEC_HIDDEN;
  extern void virtual_release_address_space(void) DECLSPEC_HIDDEN;
@@ -229,7 +229,7 @@ diff --git a/dlls/ntdll/virtual.c b/dlls/ntdll/virtual.c
 index 1daa7e1e18e..391cde87b81 100644
 --- a/dlls/ntdll/virtual.c
 +++ b/dlls/ntdll/virtual.c
-@@ -2531,11 +2531,12 @@ void virtual_release_address_space(void)
+@@ -2574,11 +2574,12 @@ void virtual_release_address_space(void)
   *
   * Enable use of a large address space when allowed by the application.
   */
