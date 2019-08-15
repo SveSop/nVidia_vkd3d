@@ -2,13 +2,13 @@
 nVidia patches &amp; hacks for vkd3d and wine
 
 **Patches for wine:**  
-0001 : 'use_clock_monotonic.patch':		Use clock monotonic patch  
-0002 : 'use_clock_monotonic-2.patch':		Clock monotonic fix patch  
-0003 : `LAA-Staging.patch`:			Large Address Aware patch for wine-staging.  
-0004 : `winecfg-Toggle-upstream-CSMT-implementation.patch`: Change "Toggle CSMT logic"  
-0005 : `woff-hack.patch`:			Vulkan child window rendering patch  
-0006 : 'winevulkan-1.1.113.patch':		Update winevulkan to 1.1.113  
-0007 : 'fsync-staging.patch':			Implement "FSync" for wine-staging.  
+0001 : `use_clock_monotonic.patch`:&nbsp;&nbsp;	Use clock monotonic patch  
+0002 : `use_clock_monotonic-2.patch`:&nbsp;&nbsp; Clock monotonic fix patch  
+0003 : `LAA-Staging.patch`:&nbsp;&nbsp;	Large Address Aware patch for wine-staging.  
+0004 : `winecfg-Toggle-upstream-CSMT-implementation.patch`:&nbsp;&nbsp; Change "Toggle CSMT logic"  
+0005 : `woff-hack.patch`:&nbsp;&nbsp; Vulkan child window rendering patch  
+0006 : `winevulkan-1.1.113.patch`:&nbsp;&nbsp; Update winevulkan to 1.1.113  
+0007 : `fsync-staging.patch`:&nbsp;&nbsp; Implement "FSync" for wine-staging.  
 
 **Patches for vkd3d:**  
 vkd3d_Descriptors.patch  
