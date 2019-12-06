@@ -8,10 +8,10 @@ This is an addition for 13e11d3 to Andrew Eikum's patch for ntdll and server
 Signed-off-by: Tk-Glitch <ti3nou@gmail.com>
 
 diff --git a/dlls/kernel32/time.c b/dlls/kernel32/time.c
-index 737affcb38..f82d33c876 100644
+index 716230a..3972bd7 100644
 --- a/dlls/kernel32/time.c
 +++ b/dlls/kernel32/time.c
-@@ -82,7 +82,7 @@ static inline ULONGLONG monotonic_counter(void)
+@@ -85,7 +85,7 @@ static inline ULONGLONG monotonic_counter(void)
      return mach_absolute_time() * timebase.numer / timebase.denom / 100;
  #elif defined(HAVE_CLOCK_GETTIME)
      struct timespec ts;
@@ -20,3 +20,6 @@ index 737affcb38..f82d33c876 100644
      if (!clock_gettime( CLOCK_MONOTONIC_RAW, &ts ))
          return ts.tv_sec * (ULONGLONG)TICKSPERSEC + ts.tv_nsec / 100;
  #endif
+-- 
+2.17.1
+

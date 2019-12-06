@@ -3,72 +3,72 @@ From: Tk-Glitch <ti3nou@gmail.com>
 Date: Thu, 8 Aug 2019 14:44:43 +0200
 Subject: Prepare for Fsync
 
-
-diff --git a/server/device.c b/server/device.c
-index 2b604a15a8..59ffed8d7b 100644
---- a/server/device.c
-+++ b/server/device.c
-@@ -1007,11 +1007,11 @@ DECL_HANDLER(get_next_device_request)
-                 /* we already own the object if it's only on manager queue */
-                 if (irp->file) grab_object( irp );
-                 manager->current_call = irp;
--
--                if (do_esync() && list_empty( &manager->requests ))
--                    esync_clear( manager->esync_fd );
-             }
-             else close_handle( current->process, reply->next );
-+
-+            if (do_esync() && list_empty( &manager->requests ))
-+                    esync_clear( manager->esync_fd );
-         }
-     }
-     else set_error( STATUS_PENDING );
-
-diff --git a/server/process.c b/server/process.c
-index 41c26e11d8..8f5b4f52e5 100644
---- a/server/process.c
-+++ b/server/process.c
-@@ -535,8 +535,8 @@ struct process *create_process( int fd, struct process *parent, int inherit_all,
-     process->trace_data      = 0;
-     process->rawinput_mouse  = NULL;
-     process->rawinput_kbd    = NULL;
--    process->esync_fd        = -1;
-     list_init( &process->kernel_object );
-+    process->esync_fd        = -1;
-     list_init( &process->thread_list );
-     list_init( &process->locks );
-     list_init( &process->asyncs );
-
-From 7b22ba1d06c393ea1b424fbf1e686a2d4fde570e Mon Sep 17 00:00:00 2001
-From: Zebediah Figura <zfigura@codeweavers.com>
-Date: Tue, 25 Jun 2019 15:23:54 -0500
-Subject: ntdll: Fastpath null esync handles
-
-
-diff --git a/dlls/ntdll/esync.c b/dlls/ntdll/esync.c
-index f5687d61d8..6152fa679d 100644
---- a/dlls/ntdll/esync.c
-+++ b/dlls/ntdll/esync.c
-@@ -263,6 +263,13 @@ static NTSTATUS get_object( HANDLE handle, struct esync **obj )
-         return STATUS_NOT_IMPLEMENTED;
-     }
- 
-+    if (!handle)
-+    {
-+        /* Shadow of the Tomb Raider really likes passing in NULL handles to
-+         * various functions. Concerning, but let's avoid a server call. */
-+        return STATUS_INVALID_HANDLE;
-+    }
-+
-     /* We need to try grabbing it from the server. */
-     server_enter_uninterrupted_section( &fd_cache_section, &sigset );
-     if (!(*obj = get_cached_object( handle )))
+---
+ dlls/ntdll/Makefile.in         |    1 +
+ dlls/ntdll/esync.c             |   10 +-
+ dlls/ntdll/fsync.c             | 1273 ++++++++++++++++++++++++++++++++
+ dlls/ntdll/fsync.h             |   52 ++
+ dlls/ntdll/loader.c            |    2 +
+ dlls/ntdll/ntdll_misc.h        |    1 +
+ dlls/ntdll/om.c                |    4 +
+ dlls/ntdll/sync.c              |   53 ++
+ dlls/ntdll/thread.c            |    2 +
+ include/wine/server_protocol.h |  101 +++
+ server/Makefile.in             |    1 +
+ server/async.c                 |    2 +
+ server/atom.c                  |    1 +
+ server/change.c                |    1 +
+ server/clipboard.c             |    1 +
+ server/completion.c            |    1 +
+ server/console.c               |   20 +
+ server/debugger.c              |    2 +
+ server/device.c                |   29 +-
+ server/directory.c             |    2 +
+ server/esync.c                 |    6 +-
+ server/event.c                 |   37 +
+ server/fd.c                    |   27 +
+ server/file.c                  |    1 +
+ server/file.h                  |    1 +
+ server/fsync.c                 |  493 +++++++++++++
+ server/fsync.h                 |   33 +
+ server/handle.c                |    1 +
+ server/hook.c                  |    1 +
+ server/mailslot.c              |    3 +
+ server/main.c                  |    4 +
+ server/mapping.c               |    3 +
+ server/mutex.c                 |    1 +
+ server/named_pipe.c            |    5 +
+ server/object.h                |    2 +
+ server/process.c               |   18 +-
+ server/process.h               |    1 +
+ server/protocol.def            |   54 ++
+ server/queue.c                 |   42 ++
+ server/registry.c              |    1 +
+ server/request.c               |    1 +
+ server/request.h               |   38 +
+ server/semaphore.c             |    1 +
+ server/serial.c                |    1 +
+ server/signal.c                |    1 +
+ server/snapshot.c              |    1 +
+ server/sock.c                  |    2 +
+ server/symlink.c               |    1 +
+ server/thread.c                |   28 +
+ server/thread.h                |    2 +
+ server/timer.c                 |   17 +
+ server/token.c                 |    1 +
+ server/trace.c                 |   72 ++
+ server/winstation.c            |    2 +
+ 54 files changed, 2455 insertions(+), 6 deletions(-)
+ create mode 100644 dlls/ntdll/fsync.c
+ create mode 100644 dlls/ntdll/fsync.h
+ create mode 100644 server/fsync.c
+ create mode 100644 server/fsync.h
 
 diff --git a/dlls/ntdll/Makefile.in b/dlls/ntdll/Makefile.in
-index b75e8308ac..26d1fb537e 100644
+index ac0d9eb..24d58de 100644
 --- a/dlls/ntdll/Makefile.in
 +++ b/dlls/ntdll/Makefile.in
-@@ -19,6 +19,7 @@ C_SRCS = \
+@@ -20,6 +20,7 @@ C_SRCS = \
  	esync.c \
  	exception.c \
  	file.c \
@@ -77,7 +77,7 @@ index b75e8308ac..26d1fb537e 100644
  	heap.c \
  	large_int.c \
 diff --git a/dlls/ntdll/esync.c b/dlls/ntdll/esync.c
-index 6152fa679d..8ec7fb342e 100644
+index 87f3034..05f278c 100644
 --- a/dlls/ntdll/esync.c
 +++ b/dlls/ntdll/esync.c
 @@ -48,6 +48,7 @@
@@ -97,12 +97,26 @@ index 6152fa679d..8ec7fb342e 100644
  
      return do_esync_cached;
  #else
+@@ -279,6 +280,13 @@ static NTSTATUS get_object( HANDLE handle, struct esync **obj )
+         return STATUS_NOT_IMPLEMENTED;
+     }
+ 
++    if (!handle)
++    {
++        /* Shadow of the Tomb Raider really likes passing in NULL handles to
++         * various functions. Concerning, but let's avoid a server call. */
++        return STATUS_INVALID_HANDLE;
++    }
++
+     /* We need to try grabbing it from the server. */
+     server_enter_uninterrupted_section( &fd_cache_section, &sigset );
+     if (!(*obj = get_cached_object( handle )))
 diff --git a/dlls/ntdll/fsync.c b/dlls/ntdll/fsync.c
 new file mode 100644
-index 0000000000..970316777a
+index 0000000..16bd38e
 --- /dev/null
 +++ b/dlls/ntdll/fsync.c
-@@ -0,0 +1,1173 @@
+@@ -0,0 +1,1273 @@
 +/*
 + * futex-based synchronization objects
 + *
@@ -165,13 +179,23 @@ index 0000000000..970316777a
 +    int pad;
 +#endif
 +    int val;
++    int bitset;
 +};
 +#include "poppack.h"
++
++static inline void small_pause(void)
++{
++#if defined(__i386__) || defined(__x86_64__)
++    __asm__ __volatile__( "rep;nop" : : : "memory" );
++#else
++    __asm__ __volatile__( "" : : : "memory" );
++#endif
++}
 +
 +static inline int futex_wait_multiple( const struct futex_wait_block *futexes,
 +        int count, const struct timespec *timeout )
 +{
-+    return syscall( __NR_futex, futexes, 13, count, timeout, 0, 0 );
++    return syscall( __NR_futex, futexes, 31, count, timeout, 0, 0 );
 +}
 +
 +static inline int futex_wake( int *addr, int val )
@@ -184,6 +208,8 @@ index 0000000000..970316777a
 +    return syscall( __NR_futex, addr, 0, val, timeout, 0, 0 );
 +}
 +
++static unsigned int spincount;
++
 +int do_fsync(void)
 +{
 +#ifdef __linux__
@@ -194,6 +220,8 @@ index 0000000000..970316777a
 +        static const struct timespec zero;
 +        futex_wait_multiple( NULL, 0, &zero );
 +        do_fsync_cached = getenv("WINEFSYNC") && atoi(getenv("WINEFSYNC")) && errno != ENOSYS;
++        if (getenv("WINEFSYNC_SPINCOUNT"))
++            spincount = atoi(getenv("WINEFSYNC_SPINCOUNT"));
 +    }
 +
 +    return do_fsync_cached;
@@ -238,10 +266,22 @@ index 0000000000..970316777a
 +static int shm_addrs_size;  /* length of the allocated shm_addrs array */
 +static long pagesize;
 +
++static RTL_CRITICAL_SECTION shm_addrs_section;
++static RTL_CRITICAL_SECTION_DEBUG shm_addrs_debug =
++{
++    0, 0, &shm_addrs_section,
++    { &shm_addrs_debug.ProcessLocksList, &shm_addrs_debug.ProcessLocksList },
++      0, 0, { (DWORD_PTR)(__FILE__ ": shm_addrs_section") }
++};
++static RTL_CRITICAL_SECTION shm_addrs_section = { &shm_addrs_debug, -1, 0, 0, 0, 0 };
++
 +static void *get_shm( unsigned int idx )
 +{
 +    int entry  = (idx * 8) / pagesize;
 +    int offset = (idx * 8) % pagesize;
++    void *ret;
++
++    RtlEnterCriticalSection(&shm_addrs_section);
 +
 +    if (entry >= shm_addrs_size)
 +    {
@@ -263,7 +303,11 @@ index 0000000000..970316777a
 +            munmap( addr, pagesize ); /* someone beat us to it */
 +    }
 +
-+    return (void *)((unsigned long)shm_addrs[entry] + offset);
++    ret = (void *)((unsigned long)shm_addrs[entry] + offset);
++
++    RtlLeaveCriticalSection(&shm_addrs_section);
++
++    return ret;
 +}
 +
 +/* We'd like lookup to be fast. To that end, we use a static list indexed by handle.
@@ -619,6 +663,35 @@ index 0000000000..970316777a
 +    return STATUS_SUCCESS;
 +}
 +
++NTSTATUS fsync_pulse_event( HANDLE handle, LONG *prev )
++{
++    struct event *event;
++    struct fsync *obj;
++    LONG current;
++    NTSTATUS ret;
++
++    TRACE("%p.\n", handle);
++
++    if ((ret = get_object( handle, &obj ))) return ret;
++    event = obj->shm;
++
++    /* This isn't really correct; an application could miss the write.
++     * Unfortunately we can't really do much better. Fortunately this is rarely
++     * used (and publicly deprecated). */
++    if (!(current = __atomic_exchange_n( &event->signaled, 1, __ATOMIC_SEQ_CST )))
++        futex_wake( &event->signaled, INT_MAX );
++
++    /* Try to give other threads a chance to wake up. Hopefully erring on this
++     * side is the better thing to do... */
++    NtYieldExecution();
++
++    __atomic_store_n( &event->signaled, 0, __ATOMIC_SEQ_CST );
++
++    if (prev) *prev = current;
++
++    return STATUS_SUCCESS;
++}
++
 +NTSTATUS fsync_query_event( HANDLE handle, EVENT_INFORMATION_CLASS class,
 +    void *info, ULONG len, ULONG *ret_len )
 +{
@@ -733,19 +806,20 @@ index 0000000000..970316777a
 +
 +    if (alertable)
 +    {
-+        struct event *apc_event = get_shm( ntdll_get_thread_data()->fsync_apc_idx );
++        int *apc_futex = ntdll_get_thread_data()->fsync_apc_futex;
 +        struct futex_wait_block futexes[2];
 +
-+        if (__atomic_load_n( &apc_event->signaled, __ATOMIC_SEQ_CST ))
++        if (__atomic_load_n( apc_futex, __ATOMIC_SEQ_CST ))
 +            return STATUS_USER_APC;
 +
 +        futexes[0].addr = addr;
 +        futexes[0].val = val;
-+        futexes[1].addr = &apc_event->signaled;
++        futexes[1].addr = apc_futex;
 +        futexes[1].val = 0;
 +#if __SIZEOF_POINTER__ == 4
 +        futexes[0].pad = futexes[1].pad = 0;
 +#endif
++        futexes[0].bitset = futexes[1].bitset = ~0;
 +
 +        if (end)
 +        {
@@ -758,7 +832,7 @@ index 0000000000..970316777a
 +        else
 +            ret = futex_wait_multiple( futexes, 2, NULL );
 +
-+        if (__atomic_load_n( &apc_event->signaled, __ATOMIC_SEQ_CST ))
++        if (__atomic_load_n( apc_futex, __ATOMIC_SEQ_CST ))
 +            return STATUS_USER_APC;
 +    }
 +    else
@@ -793,6 +867,7 @@ index 0000000000..970316777a
 +    int has_fsync = 0, has_server = 0;
 +    BOOL msgwait = FALSE;
 +    int dummy_futex = 0;
++    unsigned int spin;
 +    LONGLONG timeleft;
 +    LARGE_INTEGER now;
 +    DWORD waitcount;
@@ -800,14 +875,21 @@ index 0000000000..970316777a
 +    int i, ret;
 +
 +    /* Grab the APC futex if we don't already have it. */
-+    if (alertable && !ntdll_get_thread_data()->fsync_apc_idx)
++    if (alertable && !ntdll_get_thread_data()->fsync_apc_futex)
 +    {
++        unsigned int idx = 0;
 +        SERVER_START_REQ( get_fsync_apc_idx )
 +        {
 +            if (!(ret = wine_server_call( req )))
-+                ntdll_get_thread_data()->fsync_apc_idx = reply->shm_idx;
++                idx = reply->shm_idx;
 +        }
 +        SERVER_END_REQ;
++
++        if (idx)
++        {
++            struct event *apc_event = get_shm( idx );
++            ntdll_get_thread_data()->fsync_apc_futex = &apc_event->signaled;
++        }
 +    }
 +
 +    NtQuerySystemTime( &now );
@@ -867,12 +949,27 @@ index 0000000000..970316777a
 +        {
 +            /* Try to grab anything. */
 +
++            if (alertable)
++            {
++                /* We must check this first! The server may set an event that
++                 * we're waiting on, but we need to return STATUS_USER_APC. */
++                if (__atomic_load_n( ntdll_get_thread_data()->fsync_apc_futex, __ATOMIC_SEQ_CST ))
++                    goto userapc;
++            }
++
 +            for (i = 0; i < count; i++)
 +            {
 +                struct fsync *obj = objs[i];
 +
 +                if (obj)
 +                {
++                    if (!obj->type) /* gcc complains if we put this in the switch */
++                    {
++                        /* Someone probably closed an object while waiting on it. */
++                        WARN("Handle %p has type 0; was it closed?\n", handles[i]);
++                        return STATUS_INVALID_HANDLE;
++                    }
++
 +                    switch (obj->type)
 +                    {
 +                    case FSYNC_SEMAPHORE:
@@ -880,24 +977,29 @@ index 0000000000..970316777a
 +                        struct semaphore *semaphore = obj->shm;
 +                        int current;
 +
-+                        do
++                        /* It would be a little clearer (and less error-prone)
++                         * to use a dedicated interlocked_dec_if_nonzero()
++                         * helper, but nesting loops like that is probably not
++                         * great for performance... */
++                        for (spin = 0; spin < spincount + 1 || current; ++spin)
 +                        {
-+                            if (!(current = semaphore->count)) break;
-+                        } while (__sync_val_compare_and_swap( &semaphore->count, current, current - 1 ) != current);
-+
-+                        if (current)
-+                        {
-+                            TRACE("Woken up by handle %p [%d].\n", handles[i], i);
-+                            return i;
++                            if ((current = __atomic_load_n( &semaphore->count, __ATOMIC_SEQ_CST ))
++                                    && __sync_val_compare_and_swap( &semaphore->count, current, current - 1 ) == current)
++                            {
++                                TRACE("Woken up by handle %p [%d].\n", handles[i], i);
++                                return i;
++                            }
++                            small_pause();
 +                        }
 +
 +                        futexes[i].addr = &semaphore->count;
-+                        futexes[i].val = current;
++                        futexes[i].val = 0;
 +                        break;
 +                    }
 +                    case FSYNC_MUTEX:
 +                    {
 +                        struct mutex *mutex = obj->shm;
++                        int tid;
 +
 +                        if (mutex->tid == GetCurrentThreadId())
 +                        {
@@ -906,15 +1008,19 @@ index 0000000000..970316777a
 +                            return i;
 +                        }
 +
-+                        if (!__sync_val_compare_and_swap( &mutex->tid, 0, GetCurrentThreadId() ))
++                        for (spin = 0; spin < spincount + 1; ++spin)
 +                        {
-+                            TRACE("Woken up by handle %p [%d].\n", handles[i], i);
-+                            mutex->count = 1;
-+                            return i;
++                            if (!(tid = __sync_val_compare_and_swap( &mutex->tid, 0, GetCurrentThreadId() )))
++                            {
++                                TRACE("Woken up by handle %p [%d].\n", handles[i], i);
++                                mutex->count = 1;
++                                return i;
++                            }
++                            small_pause();
 +                        }
 +
 +                        futexes[i].addr = &mutex->tid;
-+                        futexes[i].val  = mutex->tid;
++                        futexes[i].val  = tid;
 +                        break;
 +                    }
 +                    case FSYNC_AUTO_EVENT:
@@ -922,10 +1028,14 @@ index 0000000000..970316777a
 +                    {
 +                        struct event *event = obj->shm;
 +
-+                        if (__sync_val_compare_and_swap( &event->signaled, 1, 0 ))
++                        for (spin = 0; spin < spincount + 1; ++spin)
 +                        {
-+                            TRACE("Woken up by handle %p [%d].\n", handles[i], i);
-+                            return i;
++                            if (__sync_val_compare_and_swap( &event->signaled, 1, 0 ))
++                            {
++                                TRACE("Woken up by handle %p [%d].\n", handles[i], i);
++                                return i;
++                            }
++                            small_pause();
 +                        }
 +
 +                        futexes[i].addr = &event->signaled;
@@ -938,10 +1048,14 @@ index 0000000000..970316777a
 +                    {
 +                        struct event *event = obj->shm;
 +
-+                        if (__atomic_load_n( &event->signaled, __ATOMIC_SEQ_CST ))
++                        for (spin = 0; spin < spincount + 1; ++spin)
 +                        {
-+                            TRACE("Woken up by handle %p [%d].\n", handles[i], i);
-+                            return i;
++                            if (__atomic_load_n( &event->signaled, __ATOMIC_SEQ_CST ))
++                            {
++                                TRACE("Woken up by handle %p [%d].\n", handles[i], i);
++                                return i;
++                            }
++                            small_pause();
 +                        }
 +
 +                        futexes[i].addr = &event->signaled;
@@ -949,6 +1063,7 @@ index 0000000000..970316777a
 +                        break;
 +                    }
 +                    default:
++                        ERR("Invalid type %#x for handle %p.\n", obj->type, handles[i]);
 +                        assert(0);
 +                    }
 +                }
@@ -962,19 +1077,18 @@ index 0000000000..970316777a
 +#if __SIZEOF_POINTER__ == 4
 +                futexes[i].pad = 0;
 +#endif
++                futexes[i].bitset = ~0;
 +            }
 +
 +            if (alertable)
 +            {
-+                struct event *event = get_shm( ntdll_get_thread_data()->fsync_apc_idx );
-+                if (__atomic_load_n( &event->signaled, __ATOMIC_SEQ_CST ))
-+                    goto userapc;
-+
-+                futexes[i].addr = &event->signaled;
++                /* We already checked if it was signaled; don't bother doing it again. */
++                futexes[i].addr = ntdll_get_thread_data()->fsync_apc_futex;
 +                futexes[i].val = 0;
 +#if __SIZEOF_POINTER__ == 4
 +                futexes[i].pad = 0;
 +#endif
++                futexes[i].bitset = ~0;
 +                i++;
 +            }
 +            waitcount = i;
@@ -1278,10 +1392,10 @@ index 0000000000..970316777a
 +}
 diff --git a/dlls/ntdll/fsync.h b/dlls/ntdll/fsync.h
 new file mode 100644
-index 0000000000..2637ed46e8
+index 0000000..487e43d
 --- /dev/null
 +++ b/dlls/ntdll/fsync.h
-@@ -0,0 +1,51 @@
+@@ -0,0 +1,52 @@
 +/*
 + * futex-based synchronization objects
 + *
@@ -1319,6 +1433,7 @@ index 0000000000..2637ed46e8
 +    const OBJECT_ATTRIBUTES *attr ) DECLSPEC_HIDDEN;
 +extern NTSTATUS fsync_set_event( HANDLE handle, LONG *prev ) DECLSPEC_HIDDEN;
 +extern NTSTATUS fsync_reset_event( HANDLE handle, LONG *prev ) DECLSPEC_HIDDEN;
++extern NTSTATUS fsync_pulse_event( HANDLE handle, LONG *prev ) DECLSPEC_HIDDEN;
 +extern NTSTATUS fsync_query_event( HANDLE handle, EVENT_INFORMATION_CLASS class,
 +    void *info, ULONG len, ULONG *ret_len ) DECLSPEC_HIDDEN;
 +extern NTSTATUS fsync_create_mutex( HANDLE *handle, ACCESS_MASK access,
@@ -1333,20 +1448,40 @@ index 0000000000..2637ed46e8
 +                                    BOOLEAN alertable, const LARGE_INTEGER *timeout ) DECLSPEC_HIDDEN;
 +extern NTSTATUS fsync_signal_and_wait( HANDLE signal, HANDLE wait,
 +    BOOLEAN alertable, const LARGE_INTEGER *timeout ) DECLSPEC_HIDDEN;
+diff --git a/dlls/ntdll/loader.c b/dlls/ntdll/loader.c
+index e08e205..d66743f 100644
+--- a/dlls/ntdll/loader.c
++++ b/dlls/ntdll/loader.c
+@@ -45,6 +45,7 @@
+ #include "ntdll_misc.h"
+ #include "ddk/wdm.h"
+ #include "esync.h"
++#include "fsync.h"
+ 
+ WINE_DEFAULT_DEBUG_CHANNEL(module);
+ WINE_DECLARE_DEBUG_CHANNEL(relay);
+@@ -4594,6 +4595,7 @@ void __wine_process_init(void)
+     peb->ProcessHeap = RtlCreateHeap( HEAP_GROWABLE, NULL, 0, 0, NULL, NULL );
+     peb->LoaderLock = &loader_section;
+ 
++    fsync_init();
+     esync_init();
+ 
+     init_unix_codepage();
 diff --git a/dlls/ntdll/ntdll_misc.h b/dlls/ntdll/ntdll_misc.h
-index 9b065552f1..0b6a624d2c 100644
+index bfded56..8632edb 100644
 --- a/dlls/ntdll/ntdll_misc.h
 +++ b/dlls/ntdll/ntdll_misc.h
-@@ -280,6 +280,7 @@ struct ntdll_thread_data
+@@ -289,6 +289,7 @@ struct ntdll_thread_data
      struct debug_info *debug_info;    /* info for debugstr functions */
      int                esync_queue_fd;/* fd to wait on for driver events */
      int                esync_apc_fd;  /* fd to wait on for user APCs */
-+    unsigned int       fsync_apc_idx;
++    int               *fsync_apc_futex;
      void              *start_stack;   /* stack for thread startup */
      int                request_fd;    /* fd for sending server requests */
      int                reply_fd;      /* fd for receiving server replies */
 diff --git a/dlls/ntdll/om.c b/dlls/ntdll/om.c
-index de39ee5553..d956a3d76a 100644
+index ef2cb8b..dc3a802 100644
 --- a/dlls/ntdll/om.c
 +++ b/dlls/ntdll/om.c
 @@ -35,6 +35,7 @@
@@ -1368,7 +1503,7 @@ index de39ee5553..d956a3d76a 100644
          esync_close( handle );
  
 diff --git a/dlls/ntdll/sync.c b/dlls/ntdll/sync.c
-index 618021e13b..c6bcb5a329 100644
+index 042d44a..7aa01b8 100644
 --- a/dlls/ntdll/sync.c
 +++ b/dlls/ntdll/sync.c
 @@ -62,6 +62,7 @@
@@ -1459,7 +1594,17 @@ index 618021e13b..c6bcb5a329 100644
      if (do_esync())
          return esync_reset_event( handle, prev_state );
  
-@@ -507,6 +532,9 @@ NTSTATUS WINAPI NtQueryEvent( HANDLE handle, EVENT_INFORMATION_CLASS class,
+@@ -484,6 +509,9 @@ NTSTATUS WINAPI NtPulseEvent( HANDLE handle, LONG *prev_state )
+ {
+     NTSTATUS ret;
+ 
++    if (do_fsync())
++        return fsync_pulse_event( handle, prev_state );
++
+     if (do_esync())
+         return esync_pulse_event( handle, prev_state );
+ 
+@@ -507,6 +535,9 @@ NTSTATUS WINAPI NtQueryEvent( HANDLE handle, EVENT_INFORMATION_CLASS class,
      NTSTATUS ret;
      EVENT_BASIC_INFORMATION *out = info;
  
@@ -1469,7 +1614,7 @@ index 618021e13b..c6bcb5a329 100644
      if (do_esync())
          return esync_query_event( handle, class, info, len, ret_len );
  
-@@ -553,6 +581,9 @@ NTSTATUS WINAPI NtCreateMutant(OUT HANDLE* MutantHandle,
+@@ -553,6 +584,9 @@ NTSTATUS WINAPI NtCreateMutant(OUT HANDLE* MutantHandle,
      data_size_t len;
      struct object_attributes *objattr;
  
@@ -1479,7 +1624,7 @@ index 618021e13b..c6bcb5a329 100644
      if (do_esync())
          return esync_create_mutex( MutantHandle, access, attr, InitialOwner );
  
-@@ -582,6 +613,9 @@ NTSTATUS WINAPI NtOpenMutant( HANDLE *handle, ACCESS_MASK access, const OBJECT_A
+@@ -582,6 +616,9 @@ NTSTATUS WINAPI NtOpenMutant( HANDLE *handle, ACCESS_MASK access, const OBJECT_A
  
      if ((status = validate_open_object_attributes( attr ))) return status;
  
@@ -1489,7 +1634,7 @@ index 618021e13b..c6bcb5a329 100644
      if (do_esync())
          return esync_open_mutex( handle, access, attr );
  
-@@ -607,6 +641,9 @@ NTSTATUS WINAPI NtReleaseMutant( IN HANDLE handle, OUT PLONG prev_count OPTIONAL
+@@ -607,6 +644,9 @@ NTSTATUS WINAPI NtReleaseMutant( IN HANDLE handle, OUT PLONG prev_count OPTIONAL
  {
      NTSTATUS    status;
  
@@ -1499,7 +1644,7 @@ index 618021e13b..c6bcb5a329 100644
      if (do_esync())
          return esync_release_mutex( handle, prev_count );
  
-@@ -630,6 +667,9 @@ NTSTATUS WINAPI NtQueryMutant( HANDLE handle, MUTANT_INFORMATION_CLASS class,
+@@ -630,6 +670,9 @@ NTSTATUS WINAPI NtQueryMutant( HANDLE handle, MUTANT_INFORMATION_CLASS class,
      NTSTATUS ret;
      MUTANT_BASIC_INFORMATION *out = info;
  
@@ -1509,7 +1654,7 @@ index 618021e13b..c6bcb5a329 100644
      if (do_esync())
          return esync_query_mutex( handle, class, info, len, ret_len );
  
-@@ -1128,6 +1168,13 @@ static NTSTATUS wait_objects( DWORD count, const HANDLE *handles,
+@@ -1128,6 +1171,13 @@ static NTSTATUS wait_objects( DWORD count, const HANDLE *handles,
  
      if (!count || count > MAXIMUM_WAIT_OBJECTS) return STATUS_INVALID_PARAMETER_1;
  
@@ -1523,7 +1668,7 @@ index 618021e13b..c6bcb5a329 100644
      if (do_esync())
      {
          NTSTATUS ret = esync_wait_objects( count, handles, wait_any, alertable, timeout );
-@@ -1171,6 +1218,9 @@ NTSTATUS WINAPI NtSignalAndWaitForSingleObject( HANDLE hSignalObject, HANDLE hWa
+@@ -1171,6 +1221,9 @@ NTSTATUS WINAPI NtSignalAndWaitForSingleObject( HANDLE hSignalObject, HANDLE hWa
      select_op_t select_op;
      UINT flags = SELECT_INTERRUPTIBLE;
  
@@ -1534,47 +1679,30 @@ index 618021e13b..c6bcb5a329 100644
          return esync_signal_and_wait( hSignalObject, hWaitObject, alertable, timeout );
  
 diff --git a/dlls/ntdll/thread.c b/dlls/ntdll/thread.c
-index 7d7259425b..c6e86c196b 100644
+index 840b8ff..6f64693 100644
 --- a/dlls/ntdll/thread.c
 +++ b/dlls/ntdll/thread.c
-@@ -49,6 +49,7 @@
- #include "ddk/wdm.h"
- #include "wine/exception.h"
- #include "esync.h"
-+#include "fsync.h"
- 
- WINE_DEFAULT_DEBUG_CHANNEL(thread);
- 
-@@ -332,6 +333,7 @@ void thread_init(void)
+@@ -360,6 +360,7 @@ TEB *thread_init(void)
      thread_data->wait_fd[1] = -1;
      thread_data->esync_queue_fd = -1;
      thread_data->esync_apc_fd = -1;
-+    thread_data->fsync_apc_idx = 0;
++    thread_data->fsync_apc_futex = NULL;
  
      signal_init_thread( teb );
      virtual_init_threading();
-@@ -355,6 +357,8 @@ void thread_init(void)
-     __wine_user_shared_data();
-     fill_cpu_info();
- 
-+    fsync_init();
-+
-     esync_init();
- 
-     NtCreateKeyedEvent( &keyed_event, GENERIC_READ | GENERIC_WRITE, NULL, 0 );
-@@ -710,6 +714,7 @@ NTSTATUS WINAPI RtlCreateUserThread( HANDLE process, SECURITY_DESCRIPTOR *descr,
+@@ -758,6 +759,7 @@ NTSTATUS WINAPI NtCreateThreadEx( HANDLE *handle_ptr, ACCESS_MASK access, OBJECT
      thread_data->start_stack = (char *)teb->Tib.StackBase;
      thread_data->esync_queue_fd = -1;
      thread_data->esync_apc_fd = -1;
-+    thread_data->fsync_apc_idx = 0;
++    thread_data->fsync_apc_futex = NULL;
  
      pthread_attr_init( &pthread_attr );
      pthread_attr_setstack( &pthread_attr, teb->DeallocationStack,
 diff --git a/include/wine/server_protocol.h b/include/wine/server_protocol.h
-index 0c83438c45..3e2f82e47d 100644
+index adbefe4..e443007 100644
 --- a/include/wine/server_protocol.h
 +++ b/include/wine/server_protocol.h
-@@ -6065,6 +6065,92 @@ enum esync_type
+@@ -6074,6 +6074,92 @@ enum esync_type
      ESYNC_QUEUE,
  };
  
@@ -1667,7 +1795,7 @@ index 0c83438c45..3e2f82e47d 100644
  
  enum request
  {
-@@ -6383,6 +6469,11 @@ enum request
+@@ -6392,6 +6478,11 @@ enum request
      REQ_get_esync_fd,
      REQ_get_esync_apc_fd,
      REQ_esync_msgwait,
@@ -1679,7 +1807,7 @@ index 0c83438c45..3e2f82e47d 100644
      REQ_NB_REQUESTS
  };
  
-@@ -6705,6 +6796,11 @@ union generic_request
+@@ -6714,6 +6805,11 @@ union generic_request
      struct get_esync_fd_request get_esync_fd_request;
      struct get_esync_apc_fd_request get_esync_apc_fd_request;
      struct esync_msgwait_request esync_msgwait_request;
@@ -1691,7 +1819,7 @@ index 0c83438c45..3e2f82e47d 100644
  };
  union generic_reply
  {
-@@ -7025,6 +7121,11 @@ union generic_reply
+@@ -7034,6 +7130,11 @@ union generic_reply
      struct get_esync_fd_reply get_esync_fd_reply;
      struct get_esync_apc_fd_reply get_esync_apc_fd_reply;
      struct esync_msgwait_reply esync_msgwait_reply;
@@ -1702,9 +1830,9 @@ index 0c83438c45..3e2f82e47d 100644
 +    struct get_fsync_apc_idx_reply get_fsync_apc_idx_reply;
  };
  
- #define SERVER_PROTOCOL_VERSION 589
+ #define SERVER_PROTOCOL_VERSION 593
 diff --git a/server/Makefile.in b/server/Makefile.in
-index 99a9e85c23..3e7d78a597 100644
+index 2c895bc..35a2843 100644
 --- a/server/Makefile.in
 +++ b/server/Makefile.in
 @@ -15,6 +15,7 @@ C_SRCS = \
@@ -1716,7 +1844,7 @@ index 99a9e85c23..3e7d78a597 100644
  	hook.c \
  	mach.c \
 diff --git a/server/async.c b/server/async.c
-index 0d3bc325ed..2285c261dd 100644
+index 1994fb0..3342cd1 100644
 --- a/server/async.c
 +++ b/server/async.c
 @@ -71,6 +71,7 @@ static const struct object_ops async_ops =
@@ -1736,7 +1864,7 @@ index 0d3bc325ed..2285c261dd 100644
      no_signal,                /* signal */
      no_get_fd,                /* get_fd */
 diff --git a/server/atom.c b/server/atom.c
-index 11b7ac5326..5d40678d52 100644
+index e27b6f4..fd9de1c 100644
 --- a/server/atom.c
 +++ b/server/atom.c
 @@ -81,6 +81,7 @@ static const struct object_ops atom_table_ops =
@@ -1748,7 +1876,7 @@ index 11b7ac5326..5d40678d52 100644
      no_signal,                    /* signal */
      no_get_fd,                    /* get_fd */
 diff --git a/server/change.c b/server/change.c
-index 2be6a8360d..897fcd80b5 100644
+index dd45aa9..0274ec5 100644
 --- a/server/change.c
 +++ b/server/change.c
 @@ -116,6 +116,7 @@ static const struct object_ops dir_ops =
@@ -1760,7 +1888,7 @@ index 2be6a8360d..897fcd80b5 100644
      no_signal,                /* signal */
      dir_get_fd,               /* get_fd */
 diff --git a/server/clipboard.c b/server/clipboard.c
-index 673aabbd08..82f129b7d5 100644
+index 5888754..59111fa 100644
 --- a/server/clipboard.c
 +++ b/server/clipboard.c
 @@ -78,6 +78,7 @@ static const struct object_ops clipboard_ops =
@@ -1772,7 +1900,7 @@ index 673aabbd08..82f129b7d5 100644
      no_signal,                    /* signal */
      no_get_fd,                    /* get_fd */
 diff --git a/server/completion.c b/server/completion.c
-index 1a074c8014..fce92b5ad2 100644
+index 3b2c41b..b1a306c 100644
 --- a/server/completion.c
 +++ b/server/completion.c
 @@ -66,6 +66,7 @@ static const struct object_ops completion_ops =
@@ -1784,7 +1912,7 @@ index 1a074c8014..fce92b5ad2 100644
      no_signal,                 /* signal */
      no_get_fd,                 /* get_fd */
 diff --git a/server/console.c b/server/console.c
-index c322708556..412f02f713 100644
+index 4a0ef55..8ed0daf 100644
 --- a/server/console.c
 +++ b/server/console.c
 @@ -39,6 +39,7 @@
@@ -1827,7 +1955,7 @@ index c322708556..412f02f713 100644
      no_satisfied,                     /* satisfied */
      no_signal,                        /* signal */
      no_get_fd,                        /* get_fd */
-@@ -177,6 +182,7 @@ static const struct object_ops screen_buffer_ops =
+@@ -181,6 +186,7 @@ static const struct object_ops screen_buffer_ops =
      NULL,                             /* remove_queue */
      NULL,                             /* signaled */
      NULL,                             /* get_esync_fd */
@@ -1835,7 +1963,7 @@ index c322708556..412f02f713 100644
      NULL,                             /* satisfied */
      no_signal,                        /* signal */
      screen_buffer_get_fd,             /* get_fd */
-@@ -266,6 +273,13 @@ static int console_input_events_get_esync_fd( struct object *obj, enum esync_typ
+@@ -270,6 +276,13 @@ static int console_input_events_get_esync_fd( struct object *obj, enum esync_typ
      return evts->esync_fd;
  }
  
@@ -1849,7 +1977,7 @@ index c322708556..412f02f713 100644
  /* add an event to the console's renderer events list */
  static void console_input_events_append( struct console_input* console,
  					 struct console_renderer_event* evt)
-@@ -321,6 +334,9 @@ static void console_input_events_get( struct console_input_events* evts )
+@@ -325,6 +338,9 @@ static void console_input_events_get( struct console_input_events* evts )
      }
      evts->num_used -= num;
  
@@ -1859,7 +1987,7 @@ index c322708556..412f02f713 100644
      if (do_esync() && !evts->num_used)
          esync_clear( evts->esync_fd );
  }
-@@ -334,8 +350,12 @@ static struct console_input_events *create_console_input_events(void)
+@@ -338,8 +354,12 @@ static struct console_input_events *create_console_input_events(void)
      evt->events = NULL;
      evt->esync_fd = -1;
  
@@ -1873,7 +2001,7 @@ index c322708556..412f02f713 100644
  }
  
 diff --git a/server/debugger.c b/server/debugger.c
-index 9a29ef41f4..85b1aece3b 100644
+index 0d5176c..e3b5c83 100644
 --- a/server/debugger.c
 +++ b/server/debugger.c
 @@ -75,6 +75,7 @@ static const struct object_ops debug_event_ops =
@@ -1893,7 +2021,7 @@ index 9a29ef41f4..85b1aece3b 100644
      no_signal,                     /* signal */
      no_get_fd,                     /* get_fd */
 diff --git a/server/device.c b/server/device.c
-index 588459aa49..d7418d085a 100644
+index 6df56e1..4bffdc6 100644
 --- a/server/device.c
 +++ b/server/device.c
 @@ -40,6 +40,7 @@
@@ -1984,18 +2112,26 @@ index 588459aa49..d7418d085a 100644
          if (do_esync())
              manager->esync_fd = esync_create_fd( 0, 0 );
      }
-@@ -1010,6 +1030,9 @@ DECL_HANDLER(get_next_device_request)
+@@ -1007,11 +1027,14 @@ DECL_HANDLER(get_next_device_request)
+                 /* we already own the object if it's only on manager queue */
+                 if (irp->file) grab_object( irp );
+                 manager->current_call = irp;
+-
+-                if (do_esync() && list_empty( &manager->requests ))
+-                    esync_clear( manager->esync_fd );
              }
              else close_handle( current->process, reply->next );
- 
-+            if (do_fsync() && list_empty( &manager->requests ))
-+                    fsync_clear( &manager->obj );
 +
-             if (do_esync() && list_empty( &manager->requests ))
-                     esync_clear( manager->esync_fd );
++            if (do_fsync() && list_empty( &manager->requests ))
++                fsync_clear( &manager->obj );
++
++            if (do_esync() && list_empty( &manager->requests ))
++                    esync_clear( manager->esync_fd );
          }
+     }
+     else set_error( STATUS_PENDING );
 diff --git a/server/directory.c b/server/directory.c
-index 55cbad3286..991e2bf5d6 100644
+index ed6acc5..71ba7a4 100644
 --- a/server/directory.c
 +++ b/server/directory.c
 @@ -59,6 +59,7 @@ static const struct object_ops object_type_ops =
@@ -2015,7 +2151,7 @@ index 55cbad3286..991e2bf5d6 100644
      no_signal,                    /* signal */
      no_get_fd,                    /* get_fd */
 diff --git a/server/esync.c b/server/esync.c
-index 7aa112feef..4e0f8818d1 100644
+index 9d15d7d..5b238ce 100644
 --- a/server/esync.c
 +++ b/server/esync.c
 @@ -46,6 +46,7 @@
@@ -2053,7 +2189,7 @@ index 7aa112feef..4e0f8818d1 100644
      no_signal,                 /* signal */
      no_get_fd,                 /* get_fd */
 diff --git a/server/event.c b/server/event.c
-index 510a42bf28..1aa6b47eaf 100644
+index 895c1b8..3c0b273 100644
 --- a/server/event.c
 +++ b/server/event.c
 @@ -36,6 +36,7 @@
@@ -2064,7 +2200,7 @@ index 510a42bf28..1aa6b47eaf 100644
  
  struct event
  {
-@@ -44,13 +45,15 @@ struct event
+@@ -44,6 +45,7 @@ struct event
      int            manual_reset;    /* is it a manual reset event? */
      int            signaled;        /* event has been signaled */
      int            esync_fd;        /* esync file descriptor */
@@ -2072,7 +2208,7 @@ index 510a42bf28..1aa6b47eaf 100644
  };
  
  static void event_dump( struct object *obj, int verbose );
- static struct object_type *event_get_type( struct object *obj );
+@@ -51,6 +53,7 @@ static struct object_type *event_get_type( struct object *obj );
  static int event_signaled( struct object *obj, struct wait_queue_entry *entry );
  static void event_satisfied( struct object *obj, struct wait_queue_entry *entry );
  static int event_get_esync_fd( struct object *obj, enum esync_type *type );
@@ -2175,7 +2311,7 @@ index 510a42bf28..1aa6b47eaf 100644
  {
      struct event *event = (struct event *)obj;
 diff --git a/server/fd.c b/server/fd.c
-index 3f8082579d..07093e2101 100644
+index 18b57d8..07afc97 100644
 --- a/server/fd.c
 +++ b/server/fd.c
 @@ -102,6 +102,7 @@
@@ -2226,7 +2362,15 @@ index 3f8082579d..07093e2101 100644
      no_satisfied,               /* satisfied */
      no_signal,                  /* signal */
      no_get_fd,                  /* get_fd */
-@@ -1637,6 +1643,9 @@ static struct fd *alloc_fd_object(void)
+@@ -1628,6 +1634,7 @@ static struct fd *alloc_fd_object(void)
+     fd->completion = NULL;
+     fd->comp_flags = 0;
+     fd->esync_fd   = -1;
++    fd->fsync_idx  = 0;
+     init_async_queue( &fd->read_q );
+     init_async_queue( &fd->write_q );
+     init_async_queue( &fd->wait_q );
+@@ -1637,6 +1644,9 @@ static struct fd *alloc_fd_object(void)
      if (do_esync())
          fd->esync_fd = esync_create_fd( 1, 0 );
  
@@ -2236,7 +2380,14 @@ index 3f8082579d..07093e2101 100644
      if ((fd->poll_index = add_poll_user( fd )) == -1)
      {
          release_object( fd );
-@@ -1675,8 +1684,12 @@ struct fd *alloc_pseudo_fd( const struct fd_ops *fd_user_ops, struct object *use
+@@ -1669,14 +1679,19 @@ struct fd *alloc_pseudo_fd( const struct fd_ops *fd_user_ops, struct object *use
+     fd->comp_flags = 0;
+     fd->no_fd_status = STATUS_BAD_DEVICE_TYPE;
+     fd->esync_fd   = -1;
++    fd->fsync_idx  = 0;
+     init_async_queue( &fd->read_q );
+     init_async_queue( &fd->write_q );
+     init_async_queue( &fd->wait_q );
      list_init( &fd->inode_entry );
      list_init( &fd->locks );
  
@@ -2249,17 +2400,17 @@ index 3f8082579d..07093e2101 100644
      return fd;
  }
  
-@@ -2094,6 +2107,9 @@ void set_fd_signaled( struct fd *fd, int signaled )
+@@ -2094,6 +2109,9 @@ void set_fd_signaled( struct fd *fd, int signaled )
      fd->signaled = signaled;
      if (signaled) wake_up( fd->user, 0 );
  
 +    if (do_fsync() && !signaled)
-+        fsync_clear( &fd->obj );
++        fsync_clear( fd->user );
 +
      if (do_esync() && !signaled)
          esync_clear( fd->esync_fd );
  }
-@@ -2142,6 +2158,15 @@ int default_fd_get_esync_fd( struct object *obj, enum esync_type *type )
+@@ -2142,6 +2160,15 @@ int default_fd_get_esync_fd( struct object *obj, enum esync_type *type )
      return ret;
  }
  
@@ -2276,7 +2427,7 @@ index 3f8082579d..07093e2101 100644
  unsigned int default_fd_map_access( struct object *obj, unsigned int access )
  {
 diff --git a/server/file.c b/server/file.c
-index 25aa6bcbc6..0c4067e4de 100644
+index 6f1e219..aff9cc5 100644
 --- a/server/file.c
 +++ b/server/file.c
 @@ -97,6 +97,7 @@ static const struct object_ops file_ops =
@@ -2288,7 +2439,7 @@ index 25aa6bcbc6..0c4067e4de 100644
      no_signal,                    /* signal */
      file_get_fd,                  /* get_fd */
 diff --git a/server/file.h b/server/file.h
-index ed250c2c64..22cad72f36 100644
+index abac370..e946db0 100644
 --- a/server/file.h
 +++ b/server/file.h
 @@ -104,6 +104,7 @@ extern char *dup_fd_name( struct fd *root, const char *name );
@@ -2301,10 +2452,10 @@ index ed250c2c64..22cad72f36 100644
  extern void default_poll_event( struct fd *fd, int event );
 diff --git a/server/fsync.c b/server/fsync.c
 new file mode 100644
-index 0000000000..822c4c07ff
+index 0000000..f0280a5
 --- /dev/null
 +++ b/server/fsync.c
-@@ -0,0 +1,472 @@
+@@ -0,0 +1,493 @@
 +/*
 + * futex-based synchronization objects
 + *
@@ -2368,7 +2519,7 @@ index 0000000000..822c4c07ff
 +static inline int futex_wait_multiple( const struct futex_wait_block *futexes,
 +        int count, const struct timespec *timeout )
 +{
-+    return syscall( __NR_futex, futexes, 13, count, timeout, 0, 0 );
++    return syscall( __NR_futex, futexes, 31, count, timeout, 0, 0 );
 +}
 +
 +int do_fsync(void)
@@ -2473,6 +2624,7 @@ index 0000000000..822c4c07ff
 +    default_unlink_name,       /* unlink_name */
 +    no_open_file,              /* open_file */
 +    no_kernel_obj_list,        /* get_kernel_obj_list */
++    no_alloc_handle,           /* alloc_handle */
 +    no_close_handle,           /* close_handle */
 +    fsync_destroy              /* destroy */
 +};
@@ -2639,8 +2791,15 @@ index 0000000000..822c4c07ff
 +
 +void fsync_wake_futex( unsigned int shm_idx )
 +{
-+    struct fsync_event *event = get_shm( shm_idx );
++    struct fsync_event *event;
 +
++    if (debug_level)
++        fprintf( stderr, "fsync_wake_futex: index %u\n", shm_idx );
++
++    if (!shm_idx)
++        return;
++
++    event = get_shm( shm_idx );
 +    if (!__atomic_exchange_n( &event->signaled, 1, __ATOMIC_SEQ_CST ))
 +        futex_wake( &event->signaled, INT_MAX );
 +}
@@ -2649,20 +2808,33 @@ index 0000000000..822c4c07ff
 +{
 +    enum fsync_type type;
 +
++    if (debug_level)
++        fprintf( stderr, "fsync_wake_up: object %p\n", obj );
++
 +    if (obj->ops->get_fsync_idx)
 +        fsync_wake_futex( obj->ops->get_fsync_idx( obj, &type ) );
 +}
 +
 +void fsync_clear_futex( unsigned int shm_idx )
 +{
-+    struct fsync_event *event = get_shm( shm_idx );
++    struct fsync_event *event;
 +
++    if (debug_level)
++        fprintf( stderr, "fsync_clear_futex: index %u\n", shm_idx );
++
++    if (!shm_idx)
++        return;
++
++    event = get_shm( shm_idx );
 +    __atomic_store_n( &event->signaled, 0, __ATOMIC_SEQ_CST );
 +}
 +
 +void fsync_clear( struct object *obj )
 +{
 +    enum fsync_type type;
++
++    if (debug_level)
++        fprintf( stderr, "fsync_clear: object %p\n", obj );
 +
 +    if (obj->ops->get_fsync_idx)
 +        fsync_clear_futex( obj->ops->get_fsync_idx( obj, &type ) );
@@ -2779,7 +2951,7 @@ index 0000000000..822c4c07ff
 +}
 diff --git a/server/fsync.h b/server/fsync.h
 new file mode 100644
-index 0000000000..f6f1a48b31
+index 0000000..f6f1a48
 --- /dev/null
 +++ b/server/fsync.h
 @@ -0,0 +1,33 @@
@@ -2817,7 +2989,7 @@ index 0000000000..f6f1a48b31
 +extern void fsync_set_event( struct fsync *fsync );
 +extern void fsync_reset_event( struct fsync *fsync );
 diff --git a/server/handle.c b/server/handle.c
-index 6ca4489a82..98a5984b35 100644
+index e8edca7..0683ada 100644
 --- a/server/handle.c
 +++ b/server/handle.c
 @@ -124,6 +124,7 @@ static const struct object_ops handle_table_ops =
@@ -2829,7 +3001,7 @@ index 6ca4489a82..98a5984b35 100644
      no_signal,                       /* signal */
      no_get_fd,                       /* get_fd */
 diff --git a/server/hook.c b/server/hook.c
-index f5d7639fd7..c2e4e9e492 100644
+index 22b1482..05cb30a 100644
 --- a/server/hook.c
 +++ b/server/hook.c
 @@ -82,6 +82,7 @@ static const struct object_ops hook_table_ops =
@@ -2841,7 +3013,7 @@ index f5d7639fd7..c2e4e9e492 100644
      no_signal,                    /* signal */
      no_get_fd,                    /* get_fd */
 diff --git a/server/mailslot.c b/server/mailslot.c
-index fc1caa9e0e..50cd89e21a 100644
+index 888b837..67867c4 100644
 --- a/server/mailslot.c
 +++ b/server/mailslot.c
 @@ -80,6 +80,7 @@ static const struct object_ops mailslot_ops =
@@ -2869,7 +3041,7 @@ index fc1caa9e0e..50cd89e21a 100644
      no_signal,                      /* signal */
      mailslot_device_get_fd,         /* get_fd */
 diff --git a/server/main.c b/server/main.c
-index aca8738c4c..97a66c16d4 100644
+index 2a91f5e..4ea2bd9 100644
 --- a/server/main.c
 +++ b/server/main.c
 @@ -37,6 +37,7 @@
@@ -2891,7 +3063,7 @@ index aca8738c4c..97a66c16d4 100644
          esync_init();
  
 diff --git a/server/mapping.c b/server/mapping.c
-index d64a9d19d6..bde050e599 100644
+index 1fd9008..03e802f 100644
 --- a/server/mapping.c
 +++ b/server/mapping.c
 @@ -92,6 +92,7 @@ static const struct object_ops ranges_ops =
@@ -2919,7 +3091,7 @@ index d64a9d19d6..bde050e599 100644
      no_signal,                   /* signal */
      mapping_get_fd,              /* get_fd */
 diff --git a/server/mutex.c b/server/mutex.c
-index f5f969b3d6..cf32939881 100644
+index 0bfebb4..578029d 100644
 --- a/server/mutex.c
 +++ b/server/mutex.c
 @@ -62,6 +62,7 @@ static const struct object_ops mutex_ops =
@@ -2931,7 +3103,7 @@ index f5f969b3d6..cf32939881 100644
      mutex_signal,              /* signal */
      no_get_fd,                 /* get_fd */
 diff --git a/server/named_pipe.c b/server/named_pipe.c
-index ceb9894ba7..2827f98258 100644
+index 35bbc50..36d59c4 100644
 --- a/server/named_pipe.c
 +++ b/server/named_pipe.c
 @@ -119,6 +119,7 @@ static const struct object_ops named_pipe_ops =
@@ -2975,7 +3147,7 @@ index ceb9894ba7..2827f98258 100644
      no_signal,                               /* signal */
      named_pipe_device_file_get_fd,           /* get_fd */
 diff --git a/server/object.h b/server/object.h
-index ca5a191f97..c0186f09d1 100644
+index 91d00d8..e826c38 100644
 --- a/server/object.h
 +++ b/server/object.h
 @@ -70,6 +70,8 @@ struct object_ops
@@ -2988,7 +3160,7 @@ index ca5a191f97..c0186f09d1 100644
      void (*satisfied)(struct object *,struct wait_queue_entry *);
      /* signal an object */
 diff --git a/server/process.c b/server/process.c
-index 64a4aae5e9..c341bd82e2 100644
+index 0d0a359..7f3977f 100644
 --- a/server/process.c
 +++ b/server/process.c
 @@ -49,6 +49,7 @@
@@ -3031,15 +3203,18 @@ index 64a4aae5e9..c341bd82e2 100644
      no_satisfied,                  /* satisfied */
      no_signal,                     /* signal */
      no_get_fd,                     /* get_fd */
-@@ -537,6 +542,7 @@ struct process *create_process( int fd, struct process *parent, int inherit_all,
+@@ -536,8 +541,9 @@ struct process *create_process( int fd, struct process *parent, int inherit_all,
+     process->trace_data      = 0;
+     process->rawinput_mouse  = NULL;
      process->rawinput_kbd    = NULL;
+-    process->esync_fd        = -1;
      list_init( &process->kernel_object );
-     process->esync_fd        = -1;
++    process->esync_fd        = -1;
 +    process->fsync_idx       = 0;
      list_init( &process->thread_list );
      list_init( &process->locks );
      list_init( &process->asyncs );
-@@ -580,6 +586,9 @@ struct process *create_process( int fd, struct process *parent, int inherit_all,
+@@ -581,6 +587,9 @@ struct process *create_process( int fd, struct process *parent, int inherit_all,
      }
      if (!process->handles || !process->token) goto error;
  
@@ -3049,7 +3224,7 @@ index 64a4aae5e9..c341bd82e2 100644
      if (do_esync())
          process->esync_fd = esync_create_fd( 0, 0 );
  
-@@ -664,6 +673,13 @@ static int process_get_esync_fd( struct object *obj, enum esync_type *type )
+@@ -665,6 +674,13 @@ static int process_get_esync_fd( struct object *obj, enum esync_type *type )
      return process->esync_fd;
  }
  
@@ -3064,10 +3239,10 @@ index 64a4aae5e9..c341bd82e2 100644
  {
      if (access & GENERIC_READ)    access |= STANDARD_RIGHTS_READ | PROCESS_QUERY_INFORMATION | PROCESS_VM_READ;
 diff --git a/server/process.h b/server/process.h
-index 797d0578ac..e23c71c146 100644
+index 6c91158..5a81852 100644
 --- a/server/process.h
 +++ b/server/process.h
-@@ -98,6 +98,7 @@ struct process
+@@ -99,6 +99,7 @@ struct process
      const struct rawinput_device *rawinput_kbd;   /* rawinput keyboard device, if any */
      struct list          kernel_object;   /* list of kernel object pointers */
      int                  esync_fd;        /* esync file descriptor (signaled on exit) */
@@ -3076,10 +3251,10 @@ index 797d0578ac..e23c71c146 100644
  
  struct process_snapshot
 diff --git a/server/protocol.def b/server/protocol.def
-index c79e1945e6..64e0fa66ce 100644
+index 0eefed8..9296bf5 100644
 --- a/server/protocol.def
 +++ b/server/protocol.def
-@@ -4005,6 +4005,60 @@ enum esync_type
+@@ -4003,6 +4003,60 @@ struct handle_info
      obj_handle_t handle;          /* handle to the job */
  @END
  
@@ -3138,10 +3313,10 @@ index c79e1945e6..64e0fa66ce 100644
 +@END
 +
  
- /* Assign a job object to a process */
- @REQ(assign_job)
+ /* Open a job object */
+ @REQ(open_job)
 diff --git a/server/queue.c b/server/queue.c
-index 2125b3aa69..493b2d776a 100644
+index af65b5f..2bc1178 100644
 --- a/server/queue.c
 +++ b/server/queue.c
 @@ -44,6 +44,7 @@
@@ -3185,7 +3360,7 @@ index 2125b3aa69..493b2d776a 100644
      NULL,                         /* satisfied */
      no_signal,                    /* signal */
      no_get_fd,                    /* get_fd */
-@@ -324,30 +330,35 @@ static struct msg_queue *create_msg_queue( struct thread *thread, struct thread_
+@@ -324,6 +330,8 @@ static struct msg_queue *create_msg_queue( struct thread *thread, struct thread_
      {
          queue->fd              = NULL;
          queue->esync_fd        = -1;
@@ -3194,24 +3369,7 @@ index 2125b3aa69..493b2d776a 100644
          queue->thread          = thread;
          queue->wake_bits       = 0;
          queue->wake_mask       = 0;
-         queue->changed_bits    = 0;
-         queue->changed_mask    = 0;
-         queue->keystate_locked = 0;
-         queue->paint_count     = 0;
-         queue->hotkey_count    = 0;
-         queue->quit_message    = 0;
-         queue->cursor_count    = 0;
-         queue->recv_result     = NULL;
-         queue->next_timer_id   = 0x7fff;
-         queue->timeout         = NULL;
-         queue->input           = (struct thread_input *)grab_object( input );
-         list_add_tail( &input->queues, &queue->input_entry );
-         queue->hooks           = NULL;
-         queue->last_get_msg    = current_time;
-         queue->ignore_post_msg = 0;
-         list_init( &queue->send_result );
-         list_init( &queue->callback_result );
-         list_init( &queue->pending_timers );
+@@ -348,6 +356,9 @@ static struct msg_queue *create_msg_queue( struct thread *thread, struct thread_
          list_init( &queue->expired_timers );
          for (i = 0; i < NB_MSG_KINDS; i++) list_init( &queue->msg_list[i] );
  
@@ -3265,7 +3423,7 @@ index 2125b3aa69..493b2d776a 100644
          if (do_esync() && !is_signaled( queue ))
              esync_clear( queue->esync_fd );
      }
-@@ -3312,3 +3339,18 @@ DECL_HANDLER(esync_msgwait)
+@@ -3318,3 +3345,18 @@ DECL_HANDLER(esync_msgwait)
      if (current->process->idle_event && !(queue->wake_mask & QS_SMRESULT))
          set_event( current->process->idle_event );
  }
@@ -3285,7 +3443,7 @@ index 2125b3aa69..493b2d776a 100644
 +        set_fd_events( queue->fd, req->in_msgwait ? POLLIN : 0 );
 +}
 diff --git a/server/registry.c b/server/registry.c
-index 1757fd3b34..de019750bc 100644
+index 2e683a4..7b69fea 100644
 --- a/server/registry.c
 +++ b/server/registry.c
 @@ -168,6 +168,7 @@ static const struct object_ops key_ops =
@@ -3297,7 +3455,7 @@ index 1757fd3b34..de019750bc 100644
      no_signal,               /* signal */
      no_get_fd,               /* get_fd */
 diff --git a/server/request.c b/server/request.c
-index 67de186cb0..71f672cf3b 100644
+index fb2a6d2..49f8ae7 100644
 --- a/server/request.c
 +++ b/server/request.c
 @@ -98,6 +98,7 @@ static const struct object_ops master_socket_ops =
@@ -3309,7 +3467,7 @@ index 67de186cb0..71f672cf3b 100644
      no_signal,                     /* signal */
      no_get_fd,                     /* get_fd */
 diff --git a/server/request.h b/server/request.h
-index 6edb28a1bc..506476bc0f 100644
+index f9881e1..0862fa2 100644
 --- a/server/request.h
 +++ b/server/request.h
 @@ -427,6 +427,11 @@ DECL_HANDLER(open_esync);
@@ -3336,7 +3494,7 @@ index 6edb28a1bc..506476bc0f 100644
  };
  
  C_ASSERT( sizeof(affinity_t) == 8 );
-@@ -2552,6 +2562,34 @@ C_ASSERT( sizeof(struct get_esync_fd_reply) == 16 );
+@@ -2556,6 +2566,34 @@ C_ASSERT( sizeof(struct get_esync_fd_reply) == 16 );
  C_ASSERT( sizeof(struct get_esync_apc_fd_request) == 16 );
  C_ASSERT( FIELD_OFFSET(struct esync_msgwait_request, in_msgwait) == 12 );
  C_ASSERT( sizeof(struct esync_msgwait_request) == 16 );
@@ -3372,7 +3530,7 @@ index 6edb28a1bc..506476bc0f 100644
  #endif  /* WANT_REQUEST_HANDLERS */
  
 diff --git a/server/semaphore.c b/server/semaphore.c
-index 36e3e79e5d..3688a58c6c 100644
+index ba80e55..f9f2f87 100644
 --- a/server/semaphore.c
 +++ b/server/semaphore.c
 @@ -59,6 +59,7 @@ static const struct object_ops semaphore_ops =
@@ -3384,7 +3542,7 @@ index 36e3e79e5d..3688a58c6c 100644
      semaphore_signal,              /* signal */
      no_get_fd,                     /* get_fd */
 diff --git a/server/serial.c b/server/serial.c
-index 2848e1dc79..64b64319ba 100644
+index 966b8bc..36af918 100644
 --- a/server/serial.c
 +++ b/server/serial.c
 @@ -93,6 +93,7 @@ static const struct object_ops serial_ops =
@@ -3396,7 +3554,7 @@ index 2848e1dc79..64b64319ba 100644
      no_signal,                    /* signal */
      serial_get_fd,                /* get_fd */
 diff --git a/server/signal.c b/server/signal.c
-index ca200394f7..8adc39a72b 100644
+index a2e0efe..719377a 100644
 --- a/server/signal.c
 +++ b/server/signal.c
 @@ -68,6 +68,7 @@ static const struct object_ops handler_ops =
@@ -3408,7 +3566,7 @@ index ca200394f7..8adc39a72b 100644
      no_signal,                /* signal */
      no_get_fd,                /* get_fd */
 diff --git a/server/snapshot.c b/server/snapshot.c
-index e964deba2d..1507556466 100644
+index 2ad9d5d..cc2c3e3 100644
 --- a/server/snapshot.c
 +++ b/server/snapshot.c
 @@ -62,6 +62,7 @@ static const struct object_ops snapshot_ops =
@@ -3420,7 +3578,7 @@ index e964deba2d..1507556466 100644
      no_signal,                    /* signal */
      no_get_fd,                    /* get_fd */
 diff --git a/server/sock.c b/server/sock.c
-index a49732bd80..cfb8aee5c9 100644
+index 4ceeac5..9e63a83 100644
 --- a/server/sock.c
 +++ b/server/sock.c
 @@ -147,6 +147,7 @@ static const struct object_ops sock_ops =
@@ -3440,7 +3598,7 @@ index a49732bd80..cfb8aee5c9 100644
      no_signal,               /* signal */
      ifchange_get_fd,         /* get_fd */
 diff --git a/server/symlink.c b/server/symlink.c
-index 6b66b23dd1..90230f75a6 100644
+index 4ac01e3..b491891 100644
 --- a/server/symlink.c
 +++ b/server/symlink.c
 @@ -61,6 +61,7 @@ static const struct object_ops symlink_ops =
@@ -3452,7 +3610,7 @@ index 6b66b23dd1..90230f75a6 100644
      no_signal,                    /* signal */
      no_get_fd,                    /* get_fd */
 diff --git a/server/thread.c b/server/thread.c
-index 6d51ca8774..88b5ce2792 100644
+index e9cb8be..b8bbdf6 100644
 --- a/server/thread.c
 +++ b/server/thread.c
 @@ -52,6 +52,7 @@
@@ -3493,9 +3651,9 @@ index 6d51ca8774..88b5ce2792 100644
      thread->esync_apc_fd    = -1;
 +    thread->fsync_idx       = 0;
      thread->debug_ctx       = NULL;
-     thread->debug_event     = NULL;
      thread->system_regs     = 0;
-@@ -298,6 +303,12 @@ struct thread *create_thread( int fd, struct process *process, const struct secu
+     thread->queue           = NULL;
+@@ -299,6 +304,12 @@ struct thread *create_thread( int fd, struct process *process, const struct secu
          return NULL;
      }
  
@@ -3508,7 +3666,7 @@ index 6d51ca8774..88b5ce2792 100644
      if (do_esync())
      {
          thread->esync_fd = esync_create_fd( 0, 0 );
-@@ -416,6 +427,13 @@ static int thread_get_esync_fd( struct object *obj, enum esync_type *type )
+@@ -420,6 +431,13 @@ static int thread_get_esync_fd( struct object *obj, enum esync_type *type )
      return thread->esync_fd;
  }
  
@@ -3522,7 +3680,7 @@ index 6d51ca8774..88b5ce2792 100644
  static unsigned int thread_map_access( struct object *obj, unsigned int access )
  {
      if (access & GENERIC_READ)    access |= STANDARD_RIGHTS_READ | THREAD_QUERY_INFORMATION | THREAD_GET_CONTEXT;
-@@ -465,6 +483,7 @@ static struct thread_apc *create_apc( struct object *owner, const apc_call_t *ca
+@@ -469,6 +487,7 @@ static struct thread_apc *create_apc( struct object *owner, const apc_call_t *ca
          apc->result.type = APC_NONE;
          if (owner) grab_object( owner );
      }
@@ -3530,7 +3688,7 @@ index 6d51ca8774..88b5ce2792 100644
      return apc;
  }
  
-@@ -969,6 +988,9 @@ void wake_up( struct object *obj, int max )
+@@ -995,6 +1014,9 @@ void wake_up( struct object *obj, int max )
      struct list *ptr;
      int ret;
  
@@ -3540,17 +3698,17 @@ index 6d51ca8774..88b5ce2792 100644
      if (do_esync())
          esync_wake_up( obj );
  
-@@ -1059,6 +1081,9 @@ static int queue_apc( struct process *process, struct thread *thread, struct thr
+@@ -1085,6 +1107,9 @@ static int queue_apc( struct process *process, struct thread *thread, struct thr
      {
          wake_thread( thread );
  
-+        if (do_fsync())
++        if (do_fsync() && queue == &thread->user_apc)
 +            fsync_wake_futex( thread->fsync_apc_idx );
 +
-         if (do_esync())
+         if (do_esync() && queue == &thread->user_apc)
              esync_wake_fd( thread->esync_apc_fd );
      }
-@@ -1110,6 +1135,9 @@ static struct thread_apc *thread_dequeue_apc( struct thread *thread, int system_
+@@ -1136,6 +1161,9 @@ static struct thread_apc *thread_dequeue_apc( struct thread *thread, int system_
          list_remove( ptr );
      }
  
@@ -3561,7 +3719,7 @@ index 6d51ca8774..88b5ce2792 100644
          esync_clear( thread->esync_apc_fd );
  
 diff --git a/server/thread.h b/server/thread.h
-index 23a98ba083..a8b839a867 100644
+index 53409c1..d011682 100644
 --- a/server/thread.h
 +++ b/server/thread.h
 @@ -56,6 +56,8 @@ struct thread
@@ -3571,10 +3729,10 @@ index 23a98ba083..a8b839a867 100644
 +    unsigned int           fsync_idx;
 +    unsigned int           fsync_apc_idx;
      struct debug_ctx      *debug_ctx;     /* debugger context if this thread is a debugger */
-     struct debug_event    *debug_event;   /* debug event being sent to debugger */
      unsigned int           system_regs;   /* which system regs have been set */
+     struct msg_queue      *queue;         /* message queue */
 diff --git a/server/timer.c b/server/timer.c
-index f2403fc9ba..c65e26becb 100644
+index 5b9783d..c723fd6 100644
 --- a/server/timer.c
 +++ b/server/timer.c
 @@ -37,6 +37,7 @@
@@ -3643,7 +3801,7 @@ index f2403fc9ba..c65e26becb 100644
  {
      struct timer *timer = (struct timer *)obj;
 diff --git a/server/token.c b/server/token.c
-index 4e66d92da5..912fe90d0a 100644
+index 036746a..975ea5f 100644
 --- a/server/token.c
 +++ b/server/token.c
 @@ -153,6 +153,7 @@ static const struct object_ops token_ops =
@@ -3655,10 +3813,10 @@ index 4e66d92da5..912fe90d0a 100644
      no_signal,                 /* signal */
      no_get_fd,                 /* get_fd */
 diff --git a/server/trace.c b/server/trace.c
-index 749f9fc691..76bc4aaae5 100644
+index 3a2f27c..9f44913 100644
 --- a/server/trace.c
 +++ b/server/trace.c
-@@ -4765,6 +4765,63 @@ static void dump_esync_msgwait_request( const struct esync_msgwait_request *req
+@@ -4774,6 +4774,63 @@ static void dump_esync_msgwait_request( const struct esync_msgwait_request *req
      fprintf( stderr, " in_msgwait=%d", req->in_msgwait );
  }
  
@@ -3722,7 +3880,7 @@ index 749f9fc691..76bc4aaae5 100644
  static const dump_func req_dumpers[REQ_NB_REQUESTS] = {
      (dump_func)dump_new_process_request,
      (dump_func)dump_exec_process_request,
-@@ -5081,6 +5138,11 @@ static const dump_func req_dumpers[REQ_NB_REQUESTS] = {
+@@ -5090,6 +5147,11 @@ static const dump_func req_dumpers[REQ_NB_REQUESTS] = {
      (dump_func)dump_get_esync_fd_request,
      (dump_func)dump_get_esync_apc_fd_request,
      (dump_func)dump_esync_msgwait_request,
@@ -3734,7 +3892,7 @@ index 749f9fc691..76bc4aaae5 100644
  };
  
  static const dump_func reply_dumpers[REQ_NB_REQUESTS] = {
-@@ -5399,6 +5461,11 @@ static const dump_func reply_dumpers[REQ_NB_REQUESTS] = {
+@@ -5408,6 +5470,11 @@ static const dump_func reply_dumpers[REQ_NB_REQUESTS] = {
      (dump_func)dump_get_esync_fd_reply,
      NULL,
      NULL,
@@ -3746,7 +3904,7 @@ index 749f9fc691..76bc4aaae5 100644
  };
  
  static const char * const req_names[REQ_NB_REQUESTS] = {
-@@ -5717,6 +5784,11 @@ static const char * const req_names[REQ_NB_REQUESTS] = {
+@@ -5726,6 +5793,11 @@ static const char * const req_names[REQ_NB_REQUESTS] = {
      "get_esync_fd",
      "get_esync_apc_fd",
      "esync_msgwait",
@@ -3759,7 +3917,7 @@ index 749f9fc691..76bc4aaae5 100644
  
  static const struct
 diff --git a/server/winstation.c b/server/winstation.c
-index 845043b20d..57b70b43a7 100644
+index 0b6b1d8..2a522ff 100644
 --- a/server/winstation.c
 +++ b/server/winstation.c
 @@ -67,6 +67,7 @@ static const struct object_ops winstation_ops =
@@ -3778,527 +3936,6 @@ index 845043b20d..57b70b43a7 100644
      NULL,                         /* satisfied */
      no_signal,                    /* signal */
      no_get_fd,                    /* get_fd */
+-- 
+2.17.1
 
-From 119a1293c495cb1555fabf59dfe27285659ddd44 Mon Sep 17 00:00:00 2001
-From: Zebediah Figura <zfigura@codeweavers.com>
-Date: Mon, 10 Jun 2019 11:25:34 -0400
-Subject: ntdll: Get rid of the per-event spinlock for auto-reset events.
-
-It's not necessary. Much like semaphores, the shm state is just a hint.
-
-diff --git a/dlls/ntdll/esync.c b/dlls/ntdll/esync.c
-index 8ec7fb342e..87b97ad99b 100644
---- a/dlls/ntdll/esync.c
-+++ b/dlls/ntdll/esync.c
-@@ -562,6 +562,14 @@ static inline void small_pause(void)
-  * problem at all.
-  */
- 
-+/* Removing this spinlock is harder than it looks. esync_wait_objects() can
-+ * deal with inconsistent state well enough, and a race between SetEvent() and
-+ * ResetEvent() gives us license to yield either result as long as we act
-+ * consistently, but that's not enough. Notably, esync_wait_objects() should
-+ * probably act like a fence, so that the second half of esync_set_event() does
-+ * not seep past a subsequent reset. That's one problem, but no guarantee there
-+ * aren't others. */
-+
- NTSTATUS esync_set_event( HANDLE handle, LONG *prev )
- {
-     static const uint64_t value = 1;
-@@ -575,21 +583,35 @@ NTSTATUS esync_set_event( HANDLE handle, LONG *prev )
-     if ((ret = get_object( handle, &obj ))) return ret;
-     event = obj->shm;
- 
--    /* Acquire the spinlock. */
--    while (interlocked_cmpxchg( &event->locked, 1, 0 ))
--        small_pause();
-+    if (obj->type == ESYNC_MANUAL_EVENT)
-+    {
-+        /* Acquire the spinlock. */
-+        while (interlocked_cmpxchg( &event->locked, 1, 0 ))
-+            small_pause();
-+    }
-+
-+    /* For manual-reset events, as long as we're in a lock, we can take the
-+     * optimization of only calling write() if the event wasn't already
-+     * signaled.
-+     *
-+     * For auto-reset events, esync_wait_objects() must grab the kernel object.
-+     * Thus if we got into a race so that the shm state is signaled but the
-+     * eventfd is unsignaled (i.e. reset shm, set shm, set fd, reset fd), we
-+     * *must* signal the fd now, or any waiting threads will never wake up. */
- 
--    /* Only bother signaling the fd if we weren't already signaled. */
--    if (!(current = interlocked_xchg( &event->signaled, 1 )))
-+    if (!(current = interlocked_xchg( &event->signaled, 1 )) || obj->type == ESYNC_AUTO_EVENT)
-     {
-         if (write( obj->fd, &value, sizeof(value) ) == -1)
--            return FILE_GetNtStatus();
-+            ERR("write: %s\n", strerror(errno));
-     }
- 
-     if (prev) *prev = current;
- 
--    /* Release the spinlock. */
--    event->locked = 0;
-+    if (obj->type == ESYNC_MANUAL_EVENT)
-+    {
-+        /* Release the spinlock. */
-+        event->locked = 0;
-+    }
- 
-     return STATUS_SUCCESS;
- }
-@@ -607,21 +629,34 @@ NTSTATUS esync_reset_event( HANDLE handle )
-     if ((ret = get_object( handle, &obj ))) return ret;
-     event = obj->shm;
- 
--    /* Acquire the spinlock. */
--    while (interlocked_cmpxchg( &event->locked, 1, 0 ))
--        small_pause();
-+    if (obj->type == ESYNC_MANUAL_EVENT)
-+    {
-+        /* Acquire the spinlock. */
-+        while (interlocked_cmpxchg( &event->locked, 1, 0 ))
-+            small_pause();
-+    }
- 
--    /* Only bother signaling the fd if we weren't already signaled. */
--    if ((current = interlocked_xchg( &event->signaled, 0 )))
-+    /* For manual-reset events, as long as we're in a lock, we can take the
-+     * optimization of only calling read() if the event was already signaled.
-+     *
-+     * For auto-reset events, we have no guarantee that the previous "signaled"
-+     * state is actually correct. We need to leave both states unsignaled after
-+     * leaving this function, so we always have to read(). */
-+    if ((current = interlocked_xchg( &event->signaled, 0 )) || obj->type == ESYNC_AUTO_EVENT)
-     {
--        /* we don't care about the return value */
--        read( obj->fd, &value, sizeof(value) );
-+        if (read( obj->fd, &value, sizeof(value) ) == -1 && errno != EWOULDBLOCK && errno != EAGAIN)
-+        {
-+            ERR("read: %s\n", strerror(errno));
-+        }
-     }
- 
-     if (prev) *prev = current;
- 
--    /* Release the spinlock. */
--    event->locked = 0;
-+    if (obj->type == ESYNC_MANUAL_EVENT)
-+    {
-+        /* Release the spinlock. */
-+        event->locked = 0;
-+    }
- 
-     return STATUS_SUCCESS;
- }
-@@ -836,8 +871,9 @@ static void update_grabbed_object( struct esync *obj )
-     else if (obj->type == ESYNC_AUTO_EVENT)
-     {
-         struct event *event = obj->shm;
--        /* We don't have to worry about a race between this and read(), for
--         * reasons described near esync_set_event(). */
-+        /* We don't have to worry about a race between this and read(), since
-+         * this is just a hint, and the real state is in the kernel object.
-+         * This might already be 0, but that's okay! */
-         event->signaled = 0;
-     }
- }
-@@ -1078,6 +1114,7 @@ static NTSTATUS __esync_wait_objects( DWORD count, const HANDLE *handles,
-                         }
-                         else
-                         {
-+                            /* FIXME: Could we check the poll or shm state first? Should we? */
-                             if ((size = read( fds[i].fd, &value, sizeof(value) )) == sizeof(value))
-                             {
-                                 /* We found our object. */
-diff --git a/server/esync.c b/server/esync.c
-index 4e0f8818d1..3c6f84617a 100644
---- a/server/esync.c
-+++ b/server/esync.c
-@@ -401,9 +401,12 @@ void esync_set_event( struct esync *esync )
-     if (debug_level)
-         fprintf( stderr, "esync_set_event() fd=%d\n", esync->fd );
- 
--    /* Acquire the spinlock. */
--    while (interlocked_cmpxchg( &event->locked, 1, 0 ))
--        small_pause();
-+    if (esync->type == ESYNC_MANUAL_EVENT)
-+    {
-+        /* Acquire the spinlock. */
-+        while (interlocked_cmpxchg( &event->locked, 1, 0 ))
-+            small_pause();
-+    }
- 
-     if (!interlocked_xchg( &event->signaled, 1 ))
-     {
-@@ -411,8 +414,11 @@ void esync_set_event( struct esync *esync )
-             perror( "esync: write" );
-     }
- 
--    /* Release the spinlock. */
--    event->locked = 0;
-+    if (esync->type == ESYNC_MANUAL_EVENT)
-+    {
-+        /* Release the spinlock. */
-+        event->locked = 0;
-+    }
- }
- 
- void esync_reset_event( struct esync *esync )
-@@ -426,9 +432,12 @@ void esync_reset_event( struct esync *esync )
-     if (debug_level)
-         fprintf( stderr, "esync_reset_event() fd=%d\n", esync->fd );
- 
--    /* Acquire the spinlock. */
--    while (interlocked_cmpxchg( &event->locked, 1, 0 ))
--        small_pause();
-+    if (esync->type == ESYNC_MANUAL_EVENT)
-+    {
-+        /* Acquire the spinlock. */
-+        while (interlocked_cmpxchg( &event->locked, 1, 0 ))
-+            small_pause();
-+    }
- 
-     /* Only bother signaling the fd if we weren't already signaled. */
-     if (interlocked_xchg( &event->signaled, 0 ))
-@@ -437,8 +446,11 @@ void esync_reset_event( struct esync *esync )
-         read( esync->fd, &value, sizeof(value) );
-     }
- 
--    /* Release the spinlock. */
--    event->locked = 0;
-+    if (esync->type == ESYNC_MANUAL_EVENT)
-+    {
-+        /* Release the spinlock. */
-+        event->locked = 0;
-+    }
- }
- 
- DECL_HANDLER(create_esync)
-
-diff --git a/dlls/ntdll/esync.c b/dlls/ntdll/esync.c
-index 87b97ad99b..b6613bf0dc 100644
---- a/dlls/ntdll/esync.c
-+++ b/dlls/ntdll/esync.c
-@@ -1090,6 +1090,14 @@ static NTSTATUS __esync_wait_objects( DWORD count, const HANDLE *handles,
-             ret = do_poll( fds, pollcount, timeout ? &end : NULL );
-             if (ret > 0)
-             {
-+                /* We must check this first! The server may set an event that
-+                 * we're waiting on, but we need to return STATUS_USER_APC. */
-+                if (alertable)
-+                {
-+                    if (fds[pollcount - 1].revents & POLLIN)
-+                        goto userapc;
-+                }
-+
-                 /* Find out which object triggered the wait. */
-                 for (i = 0; i < count; i++)
-                 {
-@@ -1134,11 +1142,6 @@ static NTSTATUS __esync_wait_objects( DWORD count, const HANDLE *handles,
-                         return count - 1;
-                     }
-                 }
--                if (alertable)
--                {
--                    if (fds[i++].revents & POLLIN)
--                        goto userapc;
--                }
- 
-                 /* If we got here, someone else stole (or reset, etc.) whatever
-                  * we were waiting for. So keep waiting. */
-diff --git a/dlls/ntdll/fsync.c b/dlls/ntdll/fsync.c
-index 970316777a..dbc852987b 100644
---- a/dlls/ntdll/fsync.c
-+++ b/dlls/ntdll/fsync.c
-@@ -60,13 +60,14 @@ struct futex_wait_block
-     int pad;
- #endif
-     int val;
-+    int bitset;
- };
- #include "poppack.h"
- 
- static inline int futex_wait_multiple( const struct futex_wait_block *futexes,
-         int count, const struct timespec *timeout )
- {
--    return syscall( __NR_futex, futexes, 13, count, timeout, 0, 0 );
-+    return syscall( __NR_futex, futexes, 31, count, timeout, 0, 0 );
- }
- 
- static inline int futex_wake( int *addr, int val )
-@@ -514,6 +515,35 @@ NTSTATUS fsync_reset_event( HANDLE handle, LONG *prev )
-     return STATUS_SUCCESS;
- }
- 
-+NTSTATUS fsync_pulse_event( HANDLE handle, LONG *prev )
-+{
-+    struct event *event;
-+    struct fsync *obj;
-+    LONG current;
-+    NTSTATUS ret;
-+
-+    TRACE("%p.\n", handle);
-+
-+    if ((ret = get_object( handle, &obj ))) return ret;
-+    event = obj->shm;
-+
-+    /* This isn't really correct; an application could miss the write.
-+     * Unfortunately we can't really do much better. Fortunately this is rarely
-+     * used (and publicly deprecated). */
-+    if (!(current = __atomic_exchange_n( &event->signaled, 1, __ATOMIC_SEQ_CST )))
-+        futex_wake( &event->signaled, INT_MAX );
-+
-+    /* Try to give other threads a chance to wake up. Hopefully erring on this
-+     * side is the better thing to do... */
-+    NtYieldExecution();
-+
-+    __atomic_store_n( &event->signaled, 0, __ATOMIC_SEQ_CST );
-+
-+    if (prev) *prev = current;
-+
-+    return STATUS_SUCCESS;
-+}
-+
- NTSTATUS fsync_query_event( HANDLE handle, EVENT_INFORMATION_CLASS class,
-     void *info, ULONG len, ULONG *ret_len )
- {
-@@ -641,6 +671,7 @@ static NTSTATUS do_single_wait( int *addr, int val, ULONGLONG *end, BOOLEAN aler
- #if __SIZEOF_POINTER__ == 4
-         futexes[0].pad = futexes[1].pad = 0;
- #endif
-+        futexes[0].bitset = futexes[1].bitset = ~0;
- 
-         if (end)
-         {
-@@ -762,12 +793,29 @@ static NTSTATUS __fsync_wait_objects( DWORD count, const HANDLE *handles,
-         {
-             /* Try to grab anything. */
- 
-+            if (alertable)
-+            {
-+                /* We must check this first! The server may set an event that
-+                 * we're waiting on, but we need to return STATUS_USER_APC. */
-+                struct event *event = get_shm( ntdll_get_thread_data()->fsync_apc_idx );
-+                TRACE("...%d\n", __atomic_load_n( &event->signaled, __ATOMIC_SEQ_CST ));
-+                if (__atomic_load_n( &event->signaled, __ATOMIC_SEQ_CST ))
-+                    goto userapc;
-+            }
-+
-             for (i = 0; i < count; i++)
-             {
-                 struct fsync *obj = objs[i];
- 
-                 if (obj)
-                 {
-+                    if (!obj->type) /* gcc complains if we put this in the switch */
-+                    {
-+                        /* Someone probably closed an object while waiting on it. */
-+                        WARN("Handle %p has type 0; was it closed?\n", handles[i]);
-+                        return STATUS_INVALID_HANDLE;
-+                    }
-+
-                     switch (obj->type)
-                     {
-                     case FSYNC_SEMAPHORE:
-@@ -844,6 +892,7 @@ static NTSTATUS __fsync_wait_objects( DWORD count, const HANDLE *handles,
-                         break;
-                     }
-                     default:
-+                        ERR("Invalid type %#x for handle %p.\n", obj->type, handles[i]);
-                         assert(0);
-                     }
-                 }
-@@ -857,19 +906,19 @@ static NTSTATUS __fsync_wait_objects( DWORD count, const HANDLE *handles,
- #if __SIZEOF_POINTER__ == 4
-                 futexes[i].pad = 0;
- #endif
-+                futexes[i].bitset = ~0;
-             }
- 
-             if (alertable)
-             {
-                 struct event *event = get_shm( ntdll_get_thread_data()->fsync_apc_idx );
--                if (__atomic_load_n( &event->signaled, __ATOMIC_SEQ_CST ))
--                    goto userapc;
--
-+                /* We already checked if it was signaled; don't bother doing it again. */
-                 futexes[i].addr = &event->signaled;
-                 futexes[i].val = 0;
- #if __SIZEOF_POINTER__ == 4
-                 futexes[i].pad = 0;
- #endif
-+                futexes[i].bitset = ~0;
-                 i++;
-             }
-             waitcount = i;
-diff --git a/dlls/ntdll/fsync.h b/dlls/ntdll/fsync.h
-index 2637ed46e8..487e43db67 100644
---- a/dlls/ntdll/fsync.h
-+++ b/dlls/ntdll/fsync.h
-@@ -35,6 +35,7 @@ extern NTSTATUS fsync_open_event( HANDLE *handle, ACCESS_MASK access,
-     const OBJECT_ATTRIBUTES *attr ) DECLSPEC_HIDDEN;
- extern NTSTATUS fsync_set_event( HANDLE handle, LONG *prev ) DECLSPEC_HIDDEN;
- extern NTSTATUS fsync_reset_event( HANDLE handle, LONG *prev ) DECLSPEC_HIDDEN;
-+extern NTSTATUS fsync_pulse_event( HANDLE handle, LONG *prev ) DECLSPEC_HIDDEN;
- extern NTSTATUS fsync_query_event( HANDLE handle, EVENT_INFORMATION_CLASS class,
-     void *info, ULONG len, ULONG *ret_len ) DECLSPEC_HIDDEN;
- extern NTSTATUS fsync_create_mutex( HANDLE *handle, ACCESS_MASK access,
-diff --git a/dlls/ntdll/sync.c b/dlls/ntdll/sync.c
-index c6bcb5a329..68130c567f 100644
---- a/dlls/ntdll/sync.c
-+++ b/dlls/ntdll/sync.c
-@@ -509,6 +509,9 @@ NTSTATUS WINAPI NtPulseEvent( HANDLE handle, LONG *prev_state )
- {
-     NTSTATUS ret;
- 
-+    if (do_fsync())
-+        return fsync_pulse_event( handle, prev_state );
-+
-     if (do_esync())
-         return esync_pulse_event( handle, prev_state );
- 
-diff --git a/server/fd.c b/server/fd.c
-index 07093e2101..c45a33ae07 100644
---- a/server/fd.c
-+++ b/server/fd.c
-@@ -1634,6 +1634,7 @@ static struct fd *alloc_fd_object(void)
-     fd->completion = NULL;
-     fd->comp_flags = 0;
-     fd->esync_fd   = -1;
-+    fd->fsync_idx  = 0;
-     init_async_queue( &fd->read_q );
-     init_async_queue( &fd->write_q );
-     init_async_queue( &fd->wait_q );
-@@ -1678,6 +1679,7 @@ struct fd *alloc_pseudo_fd( const struct fd_ops *fd_user_ops, struct object *use
-     fd->comp_flags = 0;
-     fd->no_fd_status = STATUS_BAD_DEVICE_TYPE;
-     fd->esync_fd   = -1;
-+    fd->fsync_idx  = 0;
-     init_async_queue( &fd->read_q );
-     init_async_queue( &fd->write_q );
-     init_async_queue( &fd->wait_q );
-@@ -2108,7 +2110,7 @@ void set_fd_signaled( struct fd *fd, int signaled )
-     if (signaled) wake_up( fd->user, 0 );
- 
-     if (do_fsync() && !signaled)
--        fsync_clear( &fd->obj );
-+        fsync_clear( fd->user );
- 
-     if (do_esync() && !signaled)
-         esync_clear( fd->esync_fd );
-diff --git a/server/fsync.c b/server/fsync.c
-index 822c4c07ff..ccbcea0b8d 100644
---- a/server/fsync.c
-+++ b/server/fsync.c
-@@ -61,7 +61,7 @@ struct futex_wait_block
- static inline int futex_wait_multiple( const struct futex_wait_block *futexes,
-         int count, const struct timespec *timeout )
- {
--    return syscall( __NR_futex, futexes, 13, count, timeout, 0, 0 );
-+    return syscall( __NR_futex, futexes, 31, count, timeout, 0, 0 );
- }
- 
- int do_fsync(void)
-@@ -332,8 +332,15 @@ struct fsync_event
- 
- void fsync_wake_futex( unsigned int shm_idx )
- {
--    struct fsync_event *event = get_shm( shm_idx );
-+    struct fsync_event *event;
- 
-+    if (debug_level)
-+        fprintf( stderr, "fsync_wake_futex: index %u\n", shm_idx );
-+
-+    if (!shm_idx)
-+        return;
-+
-+    event = get_shm( shm_idx );
-     if (!__atomic_exchange_n( &event->signaled, 1, __ATOMIC_SEQ_CST ))
-         futex_wake( &event->signaled, INT_MAX );
- }
-@@ -342,14 +349,24 @@ void fsync_wake_up( struct object *obj )
- {
-     enum fsync_type type;
- 
-+    if (debug_level)
-+        fprintf( stderr, "fsync_wake_up: object %p\n", obj );
-+
-     if (obj->ops->get_fsync_idx)
-         fsync_wake_futex( obj->ops->get_fsync_idx( obj, &type ) );
- }
- 
- void fsync_clear_futex( unsigned int shm_idx )
- {
--    struct fsync_event *event = get_shm( shm_idx );
-+    struct fsync_event *event;
- 
-+    if (debug_level)
-+        fprintf( stderr, "fsync_clear_futex: index %u\n", shm_idx );
-+
-+    if (!shm_idx)
-+        return;
-+
-+    event = get_shm( shm_idx );
-     __atomic_store_n( &event->signaled, 0, __ATOMIC_SEQ_CST );
- }
- 
-@@ -357,6 +374,9 @@ void fsync_clear( struct object *obj )
- {
-     enum fsync_type type;
- 
-+    if (debug_level)
-+        fprintf( stderr, "fsync_clear: object %p\n", obj );
-+
-     if (obj->ops->get_fsync_idx)
-         fsync_clear_futex( obj->ops->get_fsync_idx( obj, &type ) );
- }
-diff --git a/server/thread.c b/server/thread.c
-index 88b5ce2792..e9474df707 100644
---- a/server/thread.c
-+++ b/server/thread.c
-@@ -1081,10 +1081,10 @@ static int queue_apc( struct process *process, struct thread *thread, struct thr
-     {
-         wake_thread( thread );
- 
--        if (do_fsync())
-+        if (do_fsync() && queue == &thread->user_apc)
-             fsync_wake_futex( thread->fsync_apc_idx );
- 
--        if (do_esync())
-+        if (do_esync() && queue == &thread->user_apc)
-             esync_wake_fd( thread->esync_apc_fd );
-     }
- 
-From: Tk-Glitch <ti3nou@gmail.com>
-Date: Thu, 08 Aug 2019 17:27:31 +0100
-Subject: Add no_alloc_handle object method to fsync for staging compat
-
-diff --git a/server/fsync.c b/server/fsync.c
-index a0745a2306..b712867e4b 100644
---- a/server/fsync.c
-+++ b/server/fsync.c
-@@ -166,6 +166,7 @@ const struct object_ops esync_ops =
-     default_unlink_name,       /* unlink_name */
-     no_open_file,              /* open_file */
-     no_kernel_obj_list,        /* get_kernel_obj_list */
-+    no_alloc_handle,           /* alloc_handle */
-     no_close_handle,           /* close_handle */
-     fsync_destroy              /* destroy */
- };
-diff --git a/server/main.c b/server/main.c
-index 4ea2bd9..c32a27d 100644
---- a/server/main.c
-+++ b/server/main.c
-@@ -150,6 +150,9 @@ int main( int argc, char *argv[] )
-     if (do_esync())
-         esync_init();
- 
-+    if (!do_fsync() && !do_esync())
-+        fprintf( stderr, "wineserver: using server-side synchronization.\n" );
-+
-     if (debug_level) fprintf( stderr, "wineserver: starting (pid=%ld)\n", (long) getpid() );
-     init_scheduler();
-     init_signals();

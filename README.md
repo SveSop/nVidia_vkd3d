@@ -1,5 +1,5 @@
 # Various wine patches
-nVidia patches &amp; hacks for vkd3d and wine
+nVidia patches &amp; hacks for vkd3d and wine-staging
 
 **Patches for wine:**  
 0001 : `use_clock_monotonic.patch`:&nbsp;&nbsp;	Use clock monotonic patch  
@@ -7,14 +7,17 @@ nVidia patches &amp; hacks for vkd3d and wine
 0003 : `LAA-Staging.patch`:&nbsp;&nbsp;	Large Address Aware patch for wine-staging.  
 0004 : `winecfg-Toggle-upstream-CSMT-implementation.patch`:&nbsp;&nbsp; Change "Toggle CSMT logic"  
 0005 : `woff-hack.patch`:&nbsp;&nbsp; Vulkan child window rendering patch  
-0006 : `winevulkan-1.1.113.patch`:&nbsp;&nbsp; Update winevulkan to 1.1.113  
-0007 : `fsync-staging.patch`:&nbsp;&nbsp; Implement "FSync" for wine-staging.  
+0006 : `nvidia-hate.patch`:&nbsp;&nbsp; Disable compiling nvapi for wine-staging  
+0008 : `fs_bypass_compositor.patch`:&nbsp;&nbsp; Proton FullScreen compositor hack  
+0009 : `fsync-staging.patch`:&nbsp;&nbsp; Implement "FSync" for wine-staging.  
+0010 : `D3D12SerializeVersionedRootSignature.patch`:&nbsp;&nbsp; D3D12 patch needed for vkd3d and WoW  
+0011 : `D3D12CreateVersionedRootSignatureDeserializer.patch`:&nbsp;&nbsp; D3D12 patch needed for vkd3d and WoW  
 
 **Patches for vkd3d:**  
-vkd3d_Descriptors.patch  
-This patches are needed for World of Warcraft 8.1.5+ (Currently breaks with WoW 8.2 in Nazjetar zone)  
+Support_RS_1.0_Volatile.patch  
+This patches are needed for World of Warcraft 8.1.5+  
 Download latest GIT from: https://source.winehq.org/git/vkd3d.git/  
-Patch vkd3d with vkd3d_Descriptors.patch and compile.  
+Patch vkd3d with Support_RS_1.0_Volatile.patch and compile.  
 
 **Ubuntu users:**
 I try to maintain a git-updated vkd3d on my PPA: [https://launchpad.net/~cybermax-dexter/+archive/ubuntu/vkd3d](https://launchpad.net/~cybermax-dexter/+archive/ubuntu/vkd3d)  
