@@ -1,14 +1,8 @@
-From b602d7a130baf03af8795ba5ad7af4dafc18c9bc Mon Sep 17 00:00:00 2001
-From: Sveinar Søpler <cybermax@dexter.no>
-Date: Mon, 25 Nov 2019 22:47:28 +0100
-Subject: [PATCH vkd3d v3 resend] Support RS 1.0 VOLATILE descriptors
+From: Hans-Kristian Arntzen <post@arntzen-software.no>
+Subject: [PATCH] vkd3d: Support RS 1.0 VOLATILE descriptors.
+Message-Id: <20191101133638.6565-1-post@arntzen-software.no>
+Date: Fri,  1 Nov 2019 14:36:36 +0100
 
-Rework of this patch to fix bug:
-https://www.winehq.org/pipermail/wine-devel/2019-November/153658.html
-
-Original commit message:
-
-From: post@arntzen-software.no
 Use EXT_descriptor_indexing's UPDATE_AFTER_BIND feature to support
 semantics required by RS 1.0 VOLATILE descriptors. We implement this by
 deferring all updates of desciptor sets until Submit time.
@@ -21,12 +15,7 @@ is correct.
 If EXT_descriptor_indexing is not available, the fallback is the older
 method, which matches RS 1.1 STATIC descriptor model.
 
-Signed-off-by: Sveinar Søpler <cybermax@dexter.no>
-
----
-
-v3: Remove some .orig files created by git "fuzz"
-
+Signed-off-by: Hans-Kristian Arntzen <post@arntzen-software.no>
 ---
  libs/vkd3d/command.c       | 359 +++++++++++++++++++++++++++++--------
  libs/vkd3d/device.c        |  20 ++-
@@ -36,7 +25,7 @@ v3: Remove some .orig files created by git "fuzz"
  5 files changed, 339 insertions(+), 83 deletions(-)
 
 diff --git a/libs/vkd3d/command.c b/libs/vkd3d/command.c
-index 75af27d..caa51ba 100644
+index 8a7ff66..4c8efeb 100644
 --- a/libs/vkd3d/command.c
 +++ b/libs/vkd3d/command.c
 @@ -1341,7 +1341,7 @@ static VkDescriptorPool d3d12_command_allocator_allocate_descriptor_pool(
@@ -59,7 +48,7 @@ index 75af27d..caa51ba 100644
      if (state->uav_counter_mask)
      {
          struct vkd3d_pipeline_bindings *bindings = &list->pipeline_bindings[state->vk_bind_point];
-@@ -2209,6 +2213,7 @@ static ULONG STDMETHODCALLTYPE d3d12_command_list_Release(ID3D12GraphicsCommandL
+@@ -2210,6 +2214,7 @@ static ULONG STDMETHODCALLTYPE d3d12_command_list_Release(ID3D12GraphicsCommandL
          if (list->allocator)
              d3d12_command_allocator_free_command_buffer(list->allocator, list);
  
@@ -67,7 +56,7 @@ index 75af27d..caa51ba 100644
          vkd3d_free(list);
  
          d3d12_device_release(device);
-@@ -2347,6 +2352,9 @@ static void d3d12_command_list_reset_state(struct d3d12_command_list *list,
+@@ -2348,6 +2353,9 @@ static void d3d12_command_list_reset_state(struct d3d12_command_list *list,
  
      list->state = NULL;
  
@@ -77,7 +66,7 @@ index 75af27d..caa51ba 100644
      memset(list->so_counter_buffers, 0, sizeof(list->so_counter_buffers));
      memset(list->so_counter_buffer_offsets, 0, sizeof(list->so_counter_buffer_offsets));
  
-@@ -2566,15 +2574,54 @@ static void d3d12_command_list_prepare_descriptors(struct d3d12_command_list *li
+@@ -2567,15 +2575,54 @@ static void d3d12_command_list_prepare_descriptors(struct d3d12_command_list *li
       *   time in between. Thus, the contents must not be altered (overwritten
       *   by an update command, or freed) between when the command is recorded
       *   and when the command completes executing on the queue."
@@ -132,7 +121,7 @@ index 75af27d..caa51ba 100644
  static bool vk_write_descriptor_set_from_d3d12_desc(VkWriteDescriptorSet *vk_descriptor_write,
          VkDescriptorImageInfo *vk_image_info, const struct d3d12_desc *descriptor,
          uint32_t descriptor_range_magic, VkDescriptorSet vk_descriptor_set,
-@@ -2643,26 +2690,61 @@ static bool vk_write_descriptor_set_from_d3d12_desc(VkWriteDescriptorSet *vk_des
+@@ -2644,26 +2691,61 @@ static bool vk_write_descriptor_set_from_d3d12_desc(VkWriteDescriptorSet *vk_des
      return true;
  }
  
@@ -206,7 +195,7 @@ index 75af27d..caa51ba 100644
      for (i = 0; i < descriptor_table->range_count; ++i)
      {
          range = &descriptor_table->ranges[i];
-@@ -2676,20 +2758,74 @@ static void d3d12_command_list_update_descriptor_table(struct d3d12_command_list
+@@ -2677,20 +2759,74 @@ static void d3d12_command_list_update_descriptor_table(struct d3d12_command_list
          {
              unsigned int register_idx = range->base_register_idx + j;
  
@@ -289,7 +278,7 @@ index 75af27d..caa51ba 100644
                  continue;
  
              ++descriptor_count;
-@@ -2709,6 +2845,52 @@ static void d3d12_command_list_update_descriptor_table(struct d3d12_command_list
+@@ -2710,6 +2846,52 @@ static void d3d12_command_list_update_descriptor_table(struct d3d12_command_list
      VK_CALL(vkUpdateDescriptorSets(vk_device, descriptor_count, descriptor_writes, 0, NULL));
  }
  
@@ -342,7 +331,7 @@ index 75af27d..caa51ba 100644
  static bool vk_write_descriptor_set_from_root_descriptor(VkWriteDescriptorSet *vk_descriptor_write,
          const struct d3d12_root_parameter *root_parameter, VkDescriptorSet vk_descriptor_set,
          VkBufferView *vk_buffer_view, const VkDescriptorBufferInfo *vk_buffer_info)
-@@ -2813,55 +2995,6 @@ done:
+@@ -2814,55 +2996,6 @@ done:
      vkd3d_free(buffer_infos);
  }
  
@@ -398,7 +387,7 @@ index 75af27d..caa51ba 100644
  static void d3d12_command_list_update_descriptors(struct d3d12_command_list *list,
          VkPipelineBindPoint bind_point)
  {
-@@ -2874,31 +3007,86 @@ static void d3d12_command_list_update_descriptors(struct d3d12_command_list *lis
+@@ -2875,31 +3008,86 @@ static void d3d12_command_list_update_descriptors(struct d3d12_command_list *lis
      if (!rs || !rs->vk_set_layout)
          return;
  
@@ -493,7 +482,7 @@ index 75af27d..caa51ba 100644
  }
  
  static bool d3d12_command_list_update_compute_state(struct d3d12_command_list *list)
-@@ -4054,6 +4242,11 @@ static void d3d12_command_list_set_root_signature(struct d3d12_command_list *lis
+@@ -4055,6 +4243,11 @@ static void d3d12_command_list_set_root_signature(struct d3d12_command_list *lis
      bindings->root_signature = root_signature;
  
      d3d12_command_list_invalidate_root_parameters(list, bind_point);
@@ -504,8 +493,8 @@ index 75af27d..caa51ba 100644
 +
  }
  
- static void STDMETHODCALLTYPE d3d12_command_list_SetComputeRootSignature(ID3D12GraphicsCommandList1 *iface,
-@@ -5583,6 +5776,9 @@ static HRESULT d3d12_command_list_init(struct d3d12_command_list *list, struct d
+ static void STDMETHODCALLTYPE d3d12_command_list_SetComputeRootSignature(ID3D12GraphicsCommandList2 *iface,
+@@ -5609,6 +5802,9 @@ static HRESULT d3d12_command_list_init(struct d3d12_command_list *list, struct d
      d3d12_device_add_ref(list->device = device);
  
      list->allocator = allocator;
@@ -515,7 +504,7 @@ index 75af27d..caa51ba 100644
  
      if (SUCCEEDED(hr = d3d12_command_allocator_allocate_command_buffer(allocator, list)))
      {
-@@ -5820,6 +6016,13 @@ static void STDMETHODCALLTYPE d3d12_command_queue_ExecuteCommandLists(ID3D12Comm
+@@ -5846,6 +6042,13 @@ static void STDMETHODCALLTYPE d3d12_command_queue_ExecuteCommandLists(ID3D12Comm
              return;
          }
  
@@ -530,7 +519,7 @@ index 75af27d..caa51ba 100644
      }
  
 diff --git a/libs/vkd3d/device.c b/libs/vkd3d/device.c
-index 59859ad..c3cf681 100644
+index 757d4ac..eb79c4d 100644
 --- a/libs/vkd3d/device.c
 +++ b/libs/vkd3d/device.c
 @@ -1436,11 +1436,25 @@ static HRESULT vkd3d_init_device_caps(struct d3d12_device *device,
@@ -611,7 +600,7 @@ index e1f7da9..ac4a593 100644
  }
  
 diff --git a/libs/vkd3d/vkd3d_private.h b/libs/vkd3d/vkd3d_private.h
-index df8d1a1..7c37d47 100644
+index 0c031d2..8b34ca8 100644
 --- a/libs/vkd3d/vkd3d_private.h
 +++ b/libs/vkd3d/vkd3d_private.h
 @@ -913,13 +913,16 @@ struct vkd3d_pipeline_bindings
@@ -661,10 +650,10 @@ index df8d1a1..7c37d47 100644
  };
  
 diff --git a/tests/d3d12.c b/tests/d3d12.c
-index 52de007..90abc11 100644
+index 323ef23..4f355b1 100644
 --- a/tests/d3d12.c
 +++ b/tests/d3d12.c
-@@ -16177,7 +16177,7 @@ static void test_update_descriptor_heap_after_closing_command_list(void)
+@@ -16220,7 +16220,7 @@ static void test_update_descriptor_heap_after_closing_command_list(void)
              D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_SOURCE);
      get_texture_readback_with_command_list(context.render_target, 0, &rb, queue, command_list);
      value = get_readback_uint(&rb, 0, 0, 0);
