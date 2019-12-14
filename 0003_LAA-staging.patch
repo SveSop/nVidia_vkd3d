@@ -14,7 +14,7 @@ Signed-off-by: Steven Noonan <steven@valvesoftware.com>
  5 files changed, 135 insertions(+), 5 deletions(-)
 
 diff --git a/dlls/kernel32/heap.c b/dlls/kernel32/heap.c
-index 3027a6e..14adb8a 100644
+index 6c5219b..e90af96 100644
 --- a/dlls/kernel32/heap.c
 +++ b/dlls/kernel32/heap.c
 @@ -47,6 +47,8 @@ WINE_DEFAULT_DEBUG_CHANNEL(globalmem);
@@ -26,7 +26,7 @@ index 3027a6e..14adb8a 100644
  
  /***********************************************************************
   *           HEAP_CreateSystemHeap
-@@ -575,6 +577,10 @@ VOID WINAPI GlobalMemoryStatus( LPMEMORYSTATUS lpBuffer )
+@@ -547,6 +549,10 @@ VOID WINAPI GlobalMemoryStatus( LPMEMORYSTATUS lpBuffer )
      MEMORYSTATUSEX memstatus;
      OSVERSIONINFOW osver;
      IMAGE_NT_HEADERS *nt = RtlImageNtHeader( GetModuleHandleW(0) );
@@ -37,7 +37,7 @@ index 3027a6e..14adb8a 100644
  
      /* Because GlobalMemoryStatus is identical to GlobalMemoryStatusEX save
         for one extra field in the struct, and the lack of a bug, we simply
-@@ -615,7 +621,8 @@ VOID WINAPI GlobalMemoryStatus( LPMEMORYSTATUS lpBuffer )
+@@ -587,7 +593,8 @@ VOID WINAPI GlobalMemoryStatus( LPMEMORYSTATUS lpBuffer )
  
      /* values are limited to 2Gb unless the app has the IMAGE_FILE_LARGE_ADDRESS_AWARE flag */
      /* page file sizes are not limited (Adobe Illustrator 8 depends on this) */
@@ -48,7 +48,7 @@ index 3027a6e..14adb8a 100644
          if (lpBuffer->dwTotalPhys > MAXLONG) lpBuffer->dwTotalPhys = MAXLONG;
          if (lpBuffer->dwAvailPhys > MAXLONG) lpBuffer->dwAvailPhys = MAXLONG;
 diff --git a/dlls/ntdll/loader.c b/dlls/ntdll/loader.c
-index 6c21a20..e08e205 100644
+index cb91d40..f355258 100644
 --- a/dlls/ntdll/loader.c
 +++ b/dlls/ntdll/loader.c
 @@ -2497,6 +2497,127 @@ static NTSTATUS open_dll_file( UNICODE_STRING *nt_name, WINE_MODREF **pwm,
@@ -179,7 +179,7 @@ index 6c21a20..e08e205 100644
  
  /******************************************************************************
   *	load_native_dll  (internal)
-@@ -4563,7 +4684,7 @@ void __wine_process_init(void)
+@@ -4561,7 +4682,7 @@ void __wine_process_init(void)
      user_shared_data_init();
      hidden_exports_init( wm->ldr.FullDllName.Buffer );
  
@@ -189,10 +189,10 @@ index 6c21a20..e08e205 100644
      /* elevate process if necessary */
      status = RtlQueryInformationActivationContext( 0, NULL, 0, RunlevelInformationInActivationContext,
 diff --git a/dlls/ntdll/ntdll.spec b/dlls/ntdll/ntdll.spec
-index b95d723..287d764 100644
+index 44bbdce..8903fb3 100644
 --- a/dlls/ntdll/ntdll.spec
 +++ b/dlls/ntdll/ntdll.spec
-@@ -1564,6 +1564,7 @@
+@@ -1565,6 +1565,7 @@
  
  # Virtual memory
  @ cdecl __wine_locked_recvmsg(long ptr long)
@@ -214,7 +214,7 @@ index c2f4195..bfded56 100644
                                              SECTION_IMAGE_INFORMATION *info ) DECLSPEC_HIDDEN;
  extern struct _KUSER_SHARED_DATA *user_shared_data DECLSPEC_HIDDEN;
 diff --git a/dlls/ntdll/virtual.c b/dlls/ntdll/virtual.c
-index 23acca6..2cf6277 100644
+index 866b2e6..c4f554c 100644
 --- a/dlls/ntdll/virtual.c
 +++ b/dlls/ntdll/virtual.c
 @@ -2685,11 +2685,12 @@ void virtual_release_address_space(void)

@@ -8,10 +8,10 @@ Subject: [PATCH] cybwine
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/dlls/kernel32/process.c b/dlls/kernel32/process.c
-index e37e26e..749603c 100644
+index 01178c5..7abdf76 100644
 --- a/dlls/kernel32/process.c
 +++ b/dlls/kernel32/process.c
-@@ -192,11 +192,11 @@ void WINAPI start_process( LPTHREAD_START_ROUTINE entry, PEB *peb )
+@@ -159,11 +159,11 @@ void CDECL __wine_start_process( LPTHREAD_START_ROUTINE entry, PEB *peb )
      {
          if (CreateEventA(0, 0, 0, "__winestaging_warn_event") && GetLastError() != ERROR_ALREADY_EXISTS)
          {
