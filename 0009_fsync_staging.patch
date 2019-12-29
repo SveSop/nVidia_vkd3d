@@ -1419,7 +1419,7 @@ index 0000000..487e43d
 +extern NTSTATUS fsync_signal_and_wait( HANDLE signal, HANDLE wait,
 +    BOOLEAN alertable, const LARGE_INTEGER *timeout ) DECLSPEC_HIDDEN;
 diff --git a/dlls/ntdll/loader.c b/dlls/ntdll/loader.c
-index f355258..198c59b 100644
+index 0541870..5a09d7f 100644
 --- a/dlls/ntdll/loader.c
 +++ b/dlls/ntdll/loader.c
 @@ -45,6 +45,7 @@
@@ -1430,7 +1430,7 @@ index f355258..198c59b 100644
  
  WINE_DEFAULT_DEBUG_CHANNEL(module);
  WINE_DECLARE_DEBUG_CHANNEL(relay);
-@@ -4593,6 +4594,7 @@ void __wine_process_init(void)
+@@ -4591,6 +4592,7 @@ void __wine_process_init(void)
      peb->ProcessHeap = RtlCreateHeap( HEAP_GROWABLE, NULL, 0, 0, NULL, NULL );
      peb->LoaderLock = &loader_section;
  
@@ -1669,10 +1669,10 @@ index 4ece0f5..fc8a835 100644
      pthread_attr_init( &pthread_attr );
      pthread_attr_setstack( &pthread_attr, teb->DeallocationStack,
 diff --git a/include/wine/server_protocol.h b/include/wine/server_protocol.h
-index 422e06b..c6d9a6c 100644
+index 6f7698b..305218d 100644
 --- a/include/wine/server_protocol.h
 +++ b/include/wine/server_protocol.h
-@@ -6076,6 +6076,92 @@ enum esync_type
+@@ -6111,6 +6111,92 @@ enum esync_type
      ESYNC_QUEUE,
  };
  
@@ -1765,7 +1765,7 @@ index 422e06b..c6d9a6c 100644
  
  enum request
  {
-@@ -6394,6 +6480,11 @@ enum request
+@@ -6430,6 +6516,11 @@ enum request
      REQ_get_esync_fd,
      REQ_get_esync_apc_fd,
      REQ_esync_msgwait,
@@ -1777,7 +1777,7 @@ index 422e06b..c6d9a6c 100644
      REQ_NB_REQUESTS
  };
  
-@@ -6716,6 +6807,11 @@ union generic_request
+@@ -6753,6 +6844,11 @@ union generic_request
      struct get_esync_fd_request get_esync_fd_request;
      struct get_esync_apc_fd_request get_esync_apc_fd_request;
      struct esync_msgwait_request esync_msgwait_request;
@@ -1789,7 +1789,7 @@ index 422e06b..c6d9a6c 100644
  };
  union generic_reply
  {
-@@ -7036,6 +7132,11 @@ union generic_reply
+@@ -7074,6 +7170,11 @@ union generic_reply
      struct get_esync_fd_reply get_esync_fd_reply;
      struct get_esync_apc_fd_reply get_esync_apc_fd_reply;
      struct esync_msgwait_reply esync_msgwait_reply;
@@ -1991,7 +1991,7 @@ index 0d5176c..e3b5c83 100644
      no_signal,                     /* signal */
      no_get_fd,                     /* get_fd */
 diff --git a/server/device.c b/server/device.c
-index 6df56e1..4bffdc6 100644
+index 2316015..0fe7359 100644
 --- a/server/device.c
 +++ b/server/device.c
 @@ -40,6 +40,7 @@
@@ -2002,7 +2002,7 @@ index 6df56e1..4bffdc6 100644
  
  /* IRP object */
  
-@@ -70,6 +71,7 @@ static const struct object_ops irp_call_ops =
+@@ -71,6 +72,7 @@ static const struct object_ops irp_call_ops =
      remove_queue,                     /* remove_queue */
      irp_call_signaled,                /* signaled */
      NULL,                             /* get_esync_fd */
@@ -2010,7 +2010,7 @@ index 6df56e1..4bffdc6 100644
      no_satisfied,                     /* satisfied */
      no_signal,                        /* signal */
      no_get_fd,                        /* get_fd */
-@@ -97,11 +99,13 @@ struct device_manager
+@@ -98,11 +100,13 @@ struct device_manager
      struct irp_call       *current_call;   /* call currently executed on client side */
      struct wine_rb_tree    kernel_objects; /* map of objects that have client side pointer associated */
      int                    esync_fd;       /* esync file descriptor */
@@ -2024,7 +2024,7 @@ index 6df56e1..4bffdc6 100644
  static void device_manager_destroy( struct object *obj );
  
  static const struct object_ops device_manager_ops =
-@@ -113,6 +117,7 @@ static const struct object_ops device_manager_ops =
+@@ -114,6 +118,7 @@ static const struct object_ops device_manager_ops =
      remove_queue,                     /* remove_queue */
      device_manager_signaled,          /* signaled */
      device_manager_get_esync_fd,      /* get_esync_fd */
@@ -2032,7 +2032,7 @@ index 6df56e1..4bffdc6 100644
      no_satisfied,                     /* satisfied */
      no_signal,                        /* signal */
      no_get_fd,                        /* get_fd */
-@@ -158,6 +163,7 @@ static const struct object_ops device_ops =
+@@ -159,6 +164,7 @@ static const struct object_ops device_ops =
      NULL,                             /* remove_queue */
      NULL,                             /* signaled */
      NULL,                             /* get_esync_fd */
@@ -2040,7 +2040,7 @@ index 6df56e1..4bffdc6 100644
      no_satisfied,                     /* satisfied */
      no_signal,                        /* signal */
      no_get_fd,                        /* get_fd */
-@@ -209,6 +215,7 @@ static const struct object_ops device_file_ops =
+@@ -210,6 +216,7 @@ static const struct object_ops device_file_ops =
      remove_queue,                     /* remove_queue */
      default_fd_signaled,              /* signaled */
      NULL,                             /* get_esync_fd */
@@ -2048,7 +2048,7 @@ index 6df56e1..4bffdc6 100644
      no_satisfied,                     /* satisfied */
      no_signal,                        /* signal */
      device_file_get_fd,               /* get_fd */
-@@ -742,6 +749,9 @@ static void delete_file( struct device_file *file )
+@@ -755,6 +762,9 @@ static void delete_file( struct device_file *file )
      /* terminate all pending requests */
      LIST_FOR_EACH_ENTRY_SAFE( irp, next, &file->requests, struct irp_call, dev_entry )
      {
@@ -2058,7 +2058,7 @@ index 6df56e1..4bffdc6 100644
          if (do_esync() && file->device->manager && list_empty( &file->device->manager->requests ))
              esync_clear( file->device->manager->esync_fd );
  
-@@ -788,6 +798,13 @@ static int device_manager_get_esync_fd( struct object *obj, enum esync_type *typ
+@@ -801,6 +811,13 @@ static int device_manager_get_esync_fd( struct object *obj, enum esync_type *typ
      return manager->esync_fd;
  }
  
@@ -2072,7 +2072,7 @@ index 6df56e1..4bffdc6 100644
  static void device_manager_destroy( struct object *obj )
  {
      struct device_manager *manager = (struct device_manager *)obj;
-@@ -840,6 +857,9 @@ static struct device_manager *create_device_manager(void)
+@@ -853,6 +870,9 @@ static struct device_manager *create_device_manager(void)
          list_init( &manager->requests );
          wine_rb_init( &manager->kernel_objects, compare_kernel_object );
  
@@ -2082,7 +2082,7 @@ index 6df56e1..4bffdc6 100644
          if (do_esync())
              manager->esync_fd = esync_create_fd( 0, 0 );
      }
-@@ -1007,11 +1027,14 @@ DECL_HANDLER(get_next_device_request)
+@@ -1022,11 +1042,14 @@ DECL_HANDLER(get_next_device_request)
                  /* we already own the object if it's only on manager queue */
                  if (irp->file) grab_object( irp );
                  manager->current_call = irp;
@@ -3220,10 +3220,10 @@ index 8e4dc83..5091ad4 100644
  
  struct process_snapshot
 diff --git a/server/protocol.def b/server/protocol.def
-index ae3702b..afdfc5a 100644
+index 85cc2ac..611eaa5 100644
 --- a/server/protocol.def
 +++ b/server/protocol.def
-@@ -4006,6 +4006,60 @@ struct handle_info
+@@ -4034,6 +4034,60 @@ struct handle_info
      obj_handle_t handle;          /* handle to the job */
  @END
  
@@ -3285,7 +3285,7 @@ index ae3702b..afdfc5a 100644
  /* Open a job object */
  @REQ(open_job)
 diff --git a/server/queue.c b/server/queue.c
-index af65b5f..2bc1178 100644
+index acf565d..9c78610 100644
 --- a/server/queue.c
 +++ b/server/queue.c
 @@ -44,6 +44,7 @@
@@ -3348,7 +3348,7 @@ index af65b5f..2bc1178 100644
          if (do_esync())
              queue->esync_fd = esync_create_fd( 0, 0 );
  
-@@ -528,6 +539,9 @@ static inline void clear_queue_bits( struct msg_queue *queue, unsigned int bits
+@@ -531,6 +542,9 @@ static inline void clear_queue_bits( struct msg_queue *queue, unsigned int bits
      queue->changed_bits &= ~bits;
      update_shm_queue_bits( queue );
  
@@ -3358,7 +3358,7 @@ index af65b5f..2bc1178 100644
      if (do_esync() && !is_signaled( queue ))
          esync_clear( queue->esync_fd );
  }
-@@ -989,6 +1003,9 @@ static int is_queue_hung( struct msg_queue *queue )
+@@ -992,6 +1006,9 @@ static int is_queue_hung( struct msg_queue *queue )
              return 0;  /* thread is waiting on queue -> not hung */
      }
  
@@ -3368,7 +3368,7 @@ index af65b5f..2bc1178 100644
      if (do_esync() && queue->esync_in_msgwait)
          return 0;   /* thread is waiting on queue in absentia -> not hung */
  
-@@ -1054,6 +1071,13 @@ static int msg_queue_get_esync_fd( struct object *obj, enum esync_type *type )
+@@ -1057,6 +1074,13 @@ static int msg_queue_get_esync_fd( struct object *obj, enum esync_type *type )
      return queue->esync_fd;
  }
  
@@ -3382,7 +3382,7 @@ index af65b5f..2bc1178 100644
  static void msg_queue_satisfied( struct object *obj, struct wait_queue_entry *entry )
  {
      struct msg_queue *queue = (struct msg_queue *)obj;
-@@ -2378,6 +2402,9 @@ DECL_HANDLER(get_queue_status)
+@@ -2502,6 +2526,9 @@ DECL_HANDLER(get_queue_status)
          reply->changed_bits = queue->changed_bits;
          queue->changed_bits &= ~req->clear_bits;
  
@@ -3392,9 +3392,9 @@ index af65b5f..2bc1178 100644
          if (do_esync() && !is_signaled( queue ))
              esync_clear( queue->esync_fd );
      }
-@@ -3318,3 +3345,18 @@ DECL_HANDLER(esync_msgwait)
-     if (current->process->idle_event && !(queue->wake_mask & QS_SMRESULT))
-         set_event( current->process->idle_event );
+@@ -3469,3 +3496,18 @@ DECL_HANDLER(get_rawinput_devices)
+ 
+     set_reply_data_ptr( devices, device_count * sizeof (*devices) );
  }
 +
 +DECL_HANDLER(fsync_msgwait)
@@ -3436,10 +3436,10 @@ index 47f460c..b8c1ad9 100644
      no_signal,                     /* signal */
      no_get_fd,                     /* get_fd */
 diff --git a/server/request.h b/server/request.h
-index b33b1f5..a5b283f 100644
+index 24d9ff7..915bc08 100644
 --- a/server/request.h
 +++ b/server/request.h
-@@ -428,6 +428,11 @@ DECL_HANDLER(open_esync);
+@@ -429,6 +429,11 @@ DECL_HANDLER(open_esync);
  DECL_HANDLER(get_esync_fd);
  DECL_HANDLER(get_esync_apc_fd);
  DECL_HANDLER(esync_msgwait);
@@ -3451,7 +3451,7 @@ index b33b1f5..a5b283f 100644
  
  #ifdef WANT_REQUEST_HANDLERS
  
-@@ -749,6 +754,11 @@ static const req_handler req_handlers[REQ_NB_REQUESTS] =
+@@ -751,6 +756,11 @@ static const req_handler req_handlers[REQ_NB_REQUESTS] =
      (req_handler)req_get_esync_fd,
      (req_handler)req_get_esync_apc_fd,
      (req_handler)req_esync_msgwait,
@@ -3463,7 +3463,7 @@ index b33b1f5..a5b283f 100644
  };
  
  C_ASSERT( sizeof(affinity_t) == 8 );
-@@ -2560,6 +2570,34 @@ C_ASSERT( sizeof(struct get_esync_fd_reply) == 16 );
+@@ -2565,6 +2575,34 @@ C_ASSERT( sizeof(struct get_esync_fd_reply) == 16 );
  C_ASSERT( sizeof(struct get_esync_apc_fd_request) == 16 );
  C_ASSERT( FIELD_OFFSET(struct esync_msgwait_request, in_msgwait) == 12 );
  C_ASSERT( sizeof(struct esync_msgwait_request) == 16 );
@@ -3547,7 +3547,7 @@ index 2ad9d5d..cc2c3e3 100644
      no_signal,                    /* signal */
      no_get_fd,                    /* get_fd */
 diff --git a/server/sock.c b/server/sock.c
-index 4ceeac5..9e63a83 100644
+index 97548f0..d38263c 100644
 --- a/server/sock.c
 +++ b/server/sock.c
 @@ -147,6 +147,7 @@ static const struct object_ops sock_ops =
@@ -3782,10 +3782,10 @@ index 036746a..975ea5f 100644
      no_signal,                 /* signal */
      no_get_fd,                 /* get_fd */
 diff --git a/server/trace.c b/server/trace.c
-index 18b56c7..f239d25 100644
+index cf92c82..1f1caa5 100644
 --- a/server/trace.c
 +++ b/server/trace.c
-@@ -4777,6 +4777,63 @@ static void dump_esync_msgwait_request( const struct esync_msgwait_request *req
+@@ -4792,6 +4792,63 @@ static void dump_esync_msgwait_request( const struct esync_msgwait_request *req
      fprintf( stderr, " in_msgwait=%d", req->in_msgwait );
  }
  
@@ -3849,7 +3849,7 @@ index 18b56c7..f239d25 100644
  static const dump_func req_dumpers[REQ_NB_REQUESTS] = {
      (dump_func)dump_new_process_request,
      (dump_func)dump_exec_process_request,
-@@ -5093,6 +5150,11 @@ static const dump_func req_dumpers[REQ_NB_REQUESTS] = {
+@@ -5109,6 +5166,11 @@ static const dump_func req_dumpers[REQ_NB_REQUESTS] = {
      (dump_func)dump_get_esync_fd_request,
      (dump_func)dump_get_esync_apc_fd_request,
      (dump_func)dump_esync_msgwait_request,
@@ -3861,7 +3861,7 @@ index 18b56c7..f239d25 100644
  };
  
  static const dump_func reply_dumpers[REQ_NB_REQUESTS] = {
-@@ -5411,6 +5473,11 @@ static const dump_func reply_dumpers[REQ_NB_REQUESTS] = {
+@@ -5428,6 +5490,11 @@ static const dump_func reply_dumpers[REQ_NB_REQUESTS] = {
      (dump_func)dump_get_esync_fd_reply,
      NULL,
      NULL,
@@ -3873,7 +3873,7 @@ index 18b56c7..f239d25 100644
  };
  
  static const char * const req_names[REQ_NB_REQUESTS] = {
-@@ -5729,6 +5796,11 @@ static const char * const req_names[REQ_NB_REQUESTS] = {
+@@ -5747,6 +5814,11 @@ static const char * const req_names[REQ_NB_REQUESTS] = {
      "get_esync_fd",
      "get_esync_apc_fd",
      "esync_msgwait",

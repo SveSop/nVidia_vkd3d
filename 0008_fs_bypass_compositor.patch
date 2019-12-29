@@ -52,10 +52,10 @@ index 5899352..26b39b8 100644
  
  /***********************************************************************
 diff --git a/dlls/winex11.drv/x11drv.h b/dlls/winex11.drv/x11drv.h
-index cca8743..d5ed3d6 100644
+index 1ca9245..50b1727 100644
 --- a/dlls/winex11.drv/x11drv.h
 +++ b/dlls/winex11.drv/x11drv.h
-@@ -446,6 +446,7 @@ enum x11drv_atoms
+@@ -447,6 +447,7 @@ enum x11drv_atoms
      XATOM__NET_SYSTEM_TRAY_OPCODE,
      XATOM__NET_SYSTEM_TRAY_S0,
      XATOM__NET_SYSTEM_TRAY_VISUAL,
@@ -64,10 +64,10 @@ index cca8743..d5ed3d6 100644
      XATOM__NET_WM_MOVERESIZE,
      XATOM__NET_WM_NAME,
 diff --git a/dlls/winex11.drv/x11drv_main.c b/dlls/winex11.drv/x11drv_main.c
-index 11e4ee2..1c4b11f 100644
+index 3e8dd82..78b65fc 100644
 --- a/dlls/winex11.drv/x11drv_main.c
 +++ b/dlls/winex11.drv/x11drv_main.c
-@@ -159,6 +159,7 @@ static const char * const atom_names[NB_XATOMS - FIRST_XATOM] =
+@@ -161,6 +161,7 @@ static const char * const atom_names[NB_XATOMS - FIRST_XATOM] =
      "_NET_SYSTEM_TRAY_OPCODE",
      "_NET_SYSTEM_TRAY_S0",
      "_NET_SYSTEM_TRAY_VISUAL",
