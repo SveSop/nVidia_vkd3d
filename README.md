@@ -8,10 +8,12 @@ nVidia patches &amp; hacks for vkd3d and wine-staging
 0004 : `winecfg-Toggle-upstream-CSMT-implementation.patch`:&nbsp;&nbsp; Change "Toggle CSMT logic"  
 0005 : `woff-hack.patch`:&nbsp;&nbsp; Vulkan child window rendering patch  
 0006 : `nvidia-hate.patch`:&nbsp;&nbsp; Disable compiling nvapi for wine-staging  
-0008 : `fs_bypass_compositor.patch`:&nbsp;&nbsp; Proton FullScreen compositor hack  
-0009 : `fsync-staging.patch`:&nbsp;&nbsp; Implement "FSync" for wine-staging.  
-0010 : `D3D12SerializeVersionedRootSignature.patch`:&nbsp;&nbsp; D3D12 patch needed for vkd3d and WoW  
-0011 : `D3D12CreateVersionedRootSignatureDeserializer.patch`:&nbsp;&nbsp; D3D12 patch needed for vkd3d and WoW  
+0007 : `cybwine.patch` :&nbsp;&nbsp; Wine naming patch  
+0008 : `fsync-staging.patch`:&nbsp;&nbsp; Implement "FSync" for wine-staging.  
+0009 : `D3D12SerializeVersionedRootSignature.patch`:&nbsp;&nbsp; D3D12 patch needed for vkd3d and WoW  
+0010 : `D3D12CreateVersionedRootSignatureDeserializer.patch`:&nbsp;&nbsp; D3D12 patch needed for vkd3d and WoW  
+0011 : `BCryptSecretAgreement.patch`:&nbsp;&nbsp; BCrypt updates not yet upstreamed  
+0012 : `Add-some-semi-stubs-in-user32.patch`:&nbsp;&nbsp; User32 stubs  
 
 **Patches for vkd3d:**  
 Support_RS_1.0_Volatile.patch  

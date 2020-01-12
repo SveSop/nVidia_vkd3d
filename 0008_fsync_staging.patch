@@ -1419,7 +1419,7 @@ index 0000000..487e43d
 +extern NTSTATUS fsync_signal_and_wait( HANDLE signal, HANDLE wait,
 +    BOOLEAN alertable, const LARGE_INTEGER *timeout ) DECLSPEC_HIDDEN;
 diff --git a/dlls/ntdll/loader.c b/dlls/ntdll/loader.c
-index 0541870..5a09d7f 100644
+index 98052b9..71b5530 100644
 --- a/dlls/ntdll/loader.c
 +++ b/dlls/ntdll/loader.c
 @@ -45,6 +45,7 @@
@@ -1430,7 +1430,7 @@ index 0541870..5a09d7f 100644
  
  WINE_DEFAULT_DEBUG_CHANNEL(module);
  WINE_DECLARE_DEBUG_CHANNEL(relay);
-@@ -4591,6 +4592,7 @@ void __wine_process_init(void)
+@@ -4592,6 +4593,7 @@ void __wine_process_init(void)
      peb->ProcessHeap = RtlCreateHeap( HEAP_GROWABLE, NULL, 0, 0, NULL, NULL );
      peb->LoaderLock = &loader_section;
  
@@ -1649,7 +1649,7 @@ index f087492..b90be2f 100644
          return esync_signal_and_wait( hSignalObject, hWaitObject, alertable, timeout );
  
 diff --git a/dlls/ntdll/thread.c b/dlls/ntdll/thread.c
-index 4ece0f5..fc8a835 100644
+index 35187ba..e3d932d 100644
 --- a/dlls/ntdll/thread.c
 +++ b/dlls/ntdll/thread.c
 @@ -360,6 +360,7 @@ TEB *thread_init(void)
@@ -1991,7 +1991,7 @@ index 0d5176c..e3b5c83 100644
      no_signal,                     /* signal */
      no_get_fd,                     /* get_fd */
 diff --git a/server/device.c b/server/device.c
-index 2316015..0fe7359 100644
+index 6df56e1..4bffdc6 100644
 --- a/server/device.c
 +++ b/server/device.c
 @@ -40,6 +40,7 @@
@@ -2002,7 +2002,7 @@ index 2316015..0fe7359 100644
  
  /* IRP object */
  
-@@ -71,6 +72,7 @@ static const struct object_ops irp_call_ops =
+@@ -70,6 +71,7 @@ static const struct object_ops irp_call_ops =
      remove_queue,                     /* remove_queue */
      irp_call_signaled,                /* signaled */
      NULL,                             /* get_esync_fd */
@@ -2010,7 +2010,7 @@ index 2316015..0fe7359 100644
      no_satisfied,                     /* satisfied */
      no_signal,                        /* signal */
      no_get_fd,                        /* get_fd */
-@@ -98,11 +100,13 @@ struct device_manager
+@@ -97,11 +99,13 @@ struct device_manager
      struct irp_call       *current_call;   /* call currently executed on client side */
      struct wine_rb_tree    kernel_objects; /* map of objects that have client side pointer associated */
      int                    esync_fd;       /* esync file descriptor */
@@ -2024,7 +2024,7 @@ index 2316015..0fe7359 100644
  static void device_manager_destroy( struct object *obj );
  
  static const struct object_ops device_manager_ops =
-@@ -114,6 +118,7 @@ static const struct object_ops device_manager_ops =
+@@ -113,6 +117,7 @@ static const struct object_ops device_manager_ops =
      remove_queue,                     /* remove_queue */
      device_manager_signaled,          /* signaled */
      device_manager_get_esync_fd,      /* get_esync_fd */
@@ -2032,7 +2032,7 @@ index 2316015..0fe7359 100644
      no_satisfied,                     /* satisfied */
      no_signal,                        /* signal */
      no_get_fd,                        /* get_fd */
-@@ -159,6 +164,7 @@ static const struct object_ops device_ops =
+@@ -158,6 +163,7 @@ static const struct object_ops device_ops =
      NULL,                             /* remove_queue */
      NULL,                             /* signaled */
      NULL,                             /* get_esync_fd */
@@ -2040,7 +2040,7 @@ index 2316015..0fe7359 100644
      no_satisfied,                     /* satisfied */
      no_signal,                        /* signal */
      no_get_fd,                        /* get_fd */
-@@ -210,6 +216,7 @@ static const struct object_ops device_file_ops =
+@@ -209,6 +215,7 @@ static const struct object_ops device_file_ops =
      remove_queue,                     /* remove_queue */
      default_fd_signaled,              /* signaled */
      NULL,                             /* get_esync_fd */
@@ -2048,7 +2048,7 @@ index 2316015..0fe7359 100644
      no_satisfied,                     /* satisfied */
      no_signal,                        /* signal */
      device_file_get_fd,               /* get_fd */
-@@ -755,6 +762,9 @@ static void delete_file( struct device_file *file )
+@@ -742,6 +749,9 @@ static void delete_file( struct device_file *file )
      /* terminate all pending requests */
      LIST_FOR_EACH_ENTRY_SAFE( irp, next, &file->requests, struct irp_call, dev_entry )
      {
@@ -2058,7 +2058,7 @@ index 2316015..0fe7359 100644
          if (do_esync() && file->device->manager && list_empty( &file->device->manager->requests ))
              esync_clear( file->device->manager->esync_fd );
  
-@@ -801,6 +811,13 @@ static int device_manager_get_esync_fd( struct object *obj, enum esync_type *typ
+@@ -788,6 +798,13 @@ static int device_manager_get_esync_fd( struct object *obj, enum esync_type *typ
      return manager->esync_fd;
  }
  
@@ -2072,7 +2072,7 @@ index 2316015..0fe7359 100644
  static void device_manager_destroy( struct object *obj )
  {
      struct device_manager *manager = (struct device_manager *)obj;
-@@ -853,6 +870,9 @@ static struct device_manager *create_device_manager(void)
+@@ -840,6 +857,9 @@ static struct device_manager *create_device_manager(void)
          list_init( &manager->requests );
          wine_rb_init( &manager->kernel_objects, compare_kernel_object );
  
@@ -2082,7 +2082,7 @@ index 2316015..0fe7359 100644
          if (do_esync())
              manager->esync_fd = esync_create_fd( 0, 0 );
      }
-@@ -1022,11 +1042,14 @@ DECL_HANDLER(get_next_device_request)
+@@ -1007,11 +1027,14 @@ DECL_HANDLER(get_next_device_request)
                  /* we already own the object if it's only on manager queue */
                  if (irp->file) grab_object( irp );
                  manager->current_call = irp;
@@ -3285,7 +3285,7 @@ index 85cc2ac..611eaa5 100644
  /* Open a job object */
  @REQ(open_job)
 diff --git a/server/queue.c b/server/queue.c
-index acf565d..9c78610 100644
+index e441ae2..79fa1aa 100644
 --- a/server/queue.c
 +++ b/server/queue.c
 @@ -44,6 +44,7 @@
@@ -3348,7 +3348,7 @@ index acf565d..9c78610 100644
          if (do_esync())
              queue->esync_fd = esync_create_fd( 0, 0 );
  
-@@ -531,6 +542,9 @@ static inline void clear_queue_bits( struct msg_queue *queue, unsigned int bits
+@@ -549,6 +560,9 @@ static inline void clear_queue_bits( struct msg_queue *queue, unsigned int bits
      queue->changed_bits &= ~bits;
      update_shm_queue_bits( queue );
  
@@ -3358,7 +3358,7 @@ index acf565d..9c78610 100644
      if (do_esync() && !is_signaled( queue ))
          esync_clear( queue->esync_fd );
  }
-@@ -992,6 +1006,9 @@ static int is_queue_hung( struct msg_queue *queue )
+@@ -1010,6 +1024,9 @@ static int is_queue_hung( struct msg_queue *queue )
              return 0;  /* thread is waiting on queue -> not hung */
      }
  
@@ -3368,7 +3368,7 @@ index acf565d..9c78610 100644
      if (do_esync() && queue->esync_in_msgwait)
          return 0;   /* thread is waiting on queue in absentia -> not hung */
  
-@@ -1057,6 +1074,13 @@ static int msg_queue_get_esync_fd( struct object *obj, enum esync_type *type )
+@@ -1075,6 +1092,13 @@ static int msg_queue_get_esync_fd( struct object *obj, enum esync_type *type )
      return queue->esync_fd;
  }
  
@@ -3382,7 +3382,7 @@ index acf565d..9c78610 100644
  static void msg_queue_satisfied( struct object *obj, struct wait_queue_entry *entry )
  {
      struct msg_queue *queue = (struct msg_queue *)obj;
-@@ -2502,6 +2526,9 @@ DECL_HANDLER(get_queue_status)
+@@ -2518,6 +2542,9 @@ DECL_HANDLER(get_queue_status)
          reply->changed_bits = queue->changed_bits;
          queue->changed_bits &= ~req->clear_bits;
  
@@ -3392,7 +3392,7 @@ index acf565d..9c78610 100644
          if (do_esync() && !is_signaled( queue ))
              esync_clear( queue->esync_fd );
      }
-@@ -3469,3 +3496,18 @@ DECL_HANDLER(get_rawinput_devices)
+@@ -3485,3 +3512,18 @@ DECL_HANDLER(get_rawinput_devices)
  
      set_reply_data_ptr( devices, device_count * sizeof (*devices) );
  }
@@ -3547,7 +3547,7 @@ index 2ad9d5d..cc2c3e3 100644
      no_signal,                    /* signal */
      no_get_fd,                    /* get_fd */
 diff --git a/server/sock.c b/server/sock.c
-index 97548f0..d38263c 100644
+index 4ceeac5..9e63a83 100644
 --- a/server/sock.c
 +++ b/server/sock.c
 @@ -147,6 +147,7 @@ static const struct object_ops sock_ops =

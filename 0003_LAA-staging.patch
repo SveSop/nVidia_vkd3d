@@ -48,7 +48,7 @@ index 6c5219b..e90af96 100644
          if (lpBuffer->dwTotalPhys > MAXLONG) lpBuffer->dwTotalPhys = MAXLONG;
          if (lpBuffer->dwAvailPhys > MAXLONG) lpBuffer->dwAvailPhys = MAXLONG;
 diff --git a/dlls/ntdll/loader.c b/dlls/ntdll/loader.c
-index f2f86ea..0541870 100644
+index 5db7160..98052b9 100644
 --- a/dlls/ntdll/loader.c
 +++ b/dlls/ntdll/loader.c
 @@ -2497,6 +2497,127 @@ static NTSTATUS open_dll_file( UNICODE_STRING *nt_name, WINE_MODREF **pwm,
@@ -179,7 +179,7 @@ index f2f86ea..0541870 100644
  
  /******************************************************************************
   *	load_native_dll  (internal)
-@@ -4559,7 +4680,7 @@ void __wine_process_init(void)
+@@ -4560,7 +4681,7 @@ void __wine_process_init(void)
      user_shared_data_init();
      hidden_exports_init( wm->ldr.FullDllName.Buffer );
  
@@ -214,10 +214,10 @@ index c2f4195..bfded56 100644
                                              SECTION_IMAGE_INFORMATION *info ) DECLSPEC_HIDDEN;
  extern struct _KUSER_SHARED_DATA *user_shared_data DECLSPEC_HIDDEN;
 diff --git a/dlls/ntdll/virtual.c b/dlls/ntdll/virtual.c
-index aacbb85..da795aa 100644
+index 2645299..24a9ba0 100644
 --- a/dlls/ntdll/virtual.c
 +++ b/dlls/ntdll/virtual.c
-@@ -2748,11 +2748,12 @@ void virtual_release_address_space(void)
+@@ -2756,11 +2756,12 @@ void virtual_release_address_space(void)
   *
   * Enable use of a large address space when allowed by the application.
   */
