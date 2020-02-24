@@ -65,10 +65,10 @@ Subject: [PATCH] Fsync
  create mode 100644 server/fsync.h
 
 diff --git a/dlls/ntdll/Makefile.in b/dlls/ntdll/Makefile.in
-index ac0d9eb..24d58de 100644
+index 7fae1ba..22a1749 100644
 --- a/dlls/ntdll/Makefile.in
 +++ b/dlls/ntdll/Makefile.in
-@@ -20,6 +20,7 @@ C_SRCS = \
+@@ -21,6 +21,7 @@ C_SRCS = \
  	esync.c \
  	exception.c \
  	file.c \
@@ -1419,7 +1419,7 @@ index 0000000..487e43d
 +extern NTSTATUS fsync_signal_and_wait( HANDLE signal, HANDLE wait,
 +    BOOLEAN alertable, const LARGE_INTEGER *timeout ) DECLSPEC_HIDDEN;
 diff --git a/dlls/ntdll/loader.c b/dlls/ntdll/loader.c
-index 98052b9..71b5530 100644
+index d1ddcc3..4c9e097 100644
 --- a/dlls/ntdll/loader.c
 +++ b/dlls/ntdll/loader.c
 @@ -45,6 +45,7 @@
@@ -1430,7 +1430,7 @@ index 98052b9..71b5530 100644
  
  WINE_DEFAULT_DEBUG_CHANNEL(module);
  WINE_DECLARE_DEBUG_CHANNEL(relay);
-@@ -4592,6 +4593,7 @@ void __wine_process_init(void)
+@@ -4597,6 +4598,7 @@ void __wine_process_init(void)
      peb->ProcessHeap = RtlCreateHeap( HEAP_GROWABLE, NULL, 0, 0, NULL, NULL );
      peb->LoaderLock = &loader_section;
  
@@ -1439,10 +1439,10 @@ index 98052b9..71b5530 100644
  
      init_unix_codepage();
 diff --git a/dlls/ntdll/ntdll_misc.h b/dlls/ntdll/ntdll_misc.h
-index bfded56..8632edb 100644
+index 7140dfd..8b8310e 100644
 --- a/dlls/ntdll/ntdll_misc.h
 +++ b/dlls/ntdll/ntdll_misc.h
-@@ -289,6 +289,7 @@ struct ntdll_thread_data
+@@ -288,6 +288,7 @@ struct ntdll_thread_data
      struct debug_info *debug_info;    /* info for debugstr functions */
      int                esync_queue_fd;/* fd to wait on for driver events */
      int                esync_apc_fd;  /* fd to wait on for user APCs */
@@ -1473,7 +1473,7 @@ index ef2cb8b..dc3a802 100644
          esync_close( handle );
  
 diff --git a/dlls/ntdll/sync.c b/dlls/ntdll/sync.c
-index f087492..b90be2f 100644
+index ac6c85c..a280a8c 100644
 --- a/dlls/ntdll/sync.c
 +++ b/dlls/ntdll/sync.c
 @@ -62,6 +62,7 @@
@@ -1649,10 +1649,10 @@ index f087492..b90be2f 100644
          return esync_signal_and_wait( hSignalObject, hWaitObject, alertable, timeout );
  
 diff --git a/dlls/ntdll/thread.c b/dlls/ntdll/thread.c
-index 35187ba..e3d932d 100644
+index cd1fdb4..3e8b9c7 100644
 --- a/dlls/ntdll/thread.c
 +++ b/dlls/ntdll/thread.c
-@@ -360,6 +360,7 @@ TEB *thread_init(void)
+@@ -361,6 +361,7 @@ TEB *thread_init(void)
      thread_data->wait_fd[1] = -1;
      thread_data->esync_queue_fd = -1;
      thread_data->esync_apc_fd = -1;
@@ -1660,7 +1660,7 @@ index 35187ba..e3d932d 100644
  
      signal_init_thread( teb );
      virtual_init_threading();
-@@ -758,6 +759,7 @@ NTSTATUS WINAPI NtCreateThreadEx( HANDLE *handle_ptr, ACCESS_MASK access, OBJECT
+@@ -762,6 +763,7 @@ NTSTATUS WINAPI NtCreateThreadEx( HANDLE *handle_ptr, ACCESS_MASK access, OBJECT
      thread_data->start_stack = (char *)teb->Tib.StackBase;
      thread_data->esync_queue_fd = -1;
      thread_data->esync_apc_fd = -1;
@@ -1971,7 +1971,7 @@ index 3115c94..2a8e1db 100644
  }
  
 diff --git a/server/debugger.c b/server/debugger.c
-index 0d5176c..e3b5c83 100644
+index b756eb4..0fe56d5 100644
 --- a/server/debugger.c
 +++ b/server/debugger.c
 @@ -75,6 +75,7 @@ static const struct object_ops debug_event_ops =
@@ -3285,7 +3285,7 @@ index 85cc2ac..611eaa5 100644
  /* Open a job object */
  @REQ(open_job)
 diff --git a/server/queue.c b/server/queue.c
-index e441ae2..79fa1aa 100644
+index 7c59934..5edf638 100644
 --- a/server/queue.c
 +++ b/server/queue.c
 @@ -44,6 +44,7 @@
@@ -3382,7 +3382,7 @@ index e441ae2..79fa1aa 100644
  static void msg_queue_satisfied( struct object *obj, struct wait_queue_entry *entry )
  {
      struct msg_queue *queue = (struct msg_queue *)obj;
-@@ -2518,6 +2542,9 @@ DECL_HANDLER(get_queue_status)
+@@ -2515,6 +2539,9 @@ DECL_HANDLER(get_queue_status)
          reply->changed_bits = queue->changed_bits;
          queue->changed_bits &= ~req->clear_bits;
  
@@ -3392,7 +3392,7 @@ index e441ae2..79fa1aa 100644
          if (do_esync() && !is_signaled( queue ))
              esync_clear( queue->esync_fd );
      }
-@@ -3485,3 +3512,18 @@ DECL_HANDLER(get_rawinput_devices)
+@@ -3482,3 +3509,18 @@ DECL_HANDLER(get_rawinput_devices)
  
      set_reply_data_ptr( devices, device_count * sizeof (*devices) );
  }
@@ -3412,7 +3412,7 @@ index e441ae2..79fa1aa 100644
 +        set_fd_events( queue->fd, req->in_msgwait ? POLLIN : 0 );
 +}
 diff --git a/server/registry.c b/server/registry.c
-index dc27a5b..b3cecee 100644
+index 13eb52f..3ee3746 100644
 --- a/server/registry.c
 +++ b/server/registry.c
 @@ -167,6 +167,7 @@ static const struct object_ops key_ops =
@@ -3579,7 +3579,7 @@ index 4ac01e3..b491891 100644
      no_signal,                    /* signal */
      no_get_fd,                    /* get_fd */
 diff --git a/server/thread.c b/server/thread.c
-index 5ee53fa..3ee2ce9 100644
+index 6f0d616..e31de44 100644
 --- a/server/thread.c
 +++ b/server/thread.c
 @@ -52,6 +52,7 @@
@@ -3677,7 +3677,7 @@ index 5ee53fa..3ee2ce9 100644
          if (do_esync() && queue == &thread->user_apc)
              esync_wake_fd( thread->esync_apc_fd );
      }
-@@ -1136,6 +1161,9 @@ static struct thread_apc *thread_dequeue_apc( struct thread *thread, int system_
+@@ -1135,6 +1160,9 @@ static struct thread_apc *thread_dequeue_apc( struct thread *thread, int system
          list_remove( ptr );
      }
  
@@ -3782,7 +3782,7 @@ index 036746a..975ea5f 100644
      no_signal,                 /* signal */
      no_get_fd,                 /* get_fd */
 diff --git a/server/trace.c b/server/trace.c
-index cf92c82..1f1caa5 100644
+index df7085e..b188cfe 100644
 --- a/server/trace.c
 +++ b/server/trace.c
 @@ -4792,6 +4792,63 @@ static void dump_esync_msgwait_request( const struct esync_msgwait_request *req

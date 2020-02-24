@@ -1,14 +1,15 @@
-From 40d37c8d0643575c6191419a2637e49133fd321d Mon Sep 17 00:00:00 2001
-From: Sveinar Søpler <cybermax@dexter.no>
-Date: Sat, 30 Nov 2019 14:27:18 +0100
-Subject: [PATCH] cybwine
+From 596beff24cd2e801fe326aaeb69d294ec378a464 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Sveinar=20S=C3=B8pler?= <cybermax@dexter.no>
+Date: Mon, 17 Feb 2020 15:48:57 +0100
+Subject: [PATCH] Cybwine
 
 ---
  dlls/kernel32/process.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ libs/wine/Makefile.in   | 2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/dlls/kernel32/process.c b/dlls/kernel32/process.c
-index 01178c5..7abdf76 100644
+index 3f6c5bc..30d17ec 100644
 --- a/dlls/kernel32/process.c
 +++ b/dlls/kernel32/process.c
 @@ -159,11 +159,11 @@ void CDECL __wine_start_process( LPTHREAD_START_ROUTINE entry, PEB *peb )
@@ -26,6 +27,19 @@ index 01178c5..7abdf76 100644
  
  
          if (!CheckRemoteDebuggerPresent( GetCurrentProcess(), &being_debugged ))
+diff --git a/libs/wine/Makefile.in b/libs/wine/Makefile.in
+index f788b1b..aacbe6a 100644
+--- a/libs/wine/Makefile.in
++++ b/libs/wine/Makefile.in
+@@ -98,7 +98,7 @@ libwine_LDFLAGS = $(LIBWINE_LDFLAGS)
+ libwine_DEPS = $(LIBWINE_DEPENDS)
+ 
+ version.c: dummy
+-	version=`(GIT_DIR=$(top_srcdir)/.git git describe HEAD 2>/dev/null || echo "wine-$(PACKAGE_VERSION)") | sed -n -e '$$s/\(.*\)/const char wine_build[] = "\1  (Staging)";/p'` && (echo $$version | cmp -s - $@) || echo $$version >$@ || (rm -f $@ && exit 1)
++	version=`(GIT_DIR=$(top_srcdir)/.git git describe HEAD 2>/dev/null || echo "wine-$(PACKAGE_VERSION)") | sed -n -e '$$s/\(.*\)/const char wine_build[] = "\1  (Cybwine)";/p'` && (echo $$version | cmp -s - $@) || echo $$version >$@ || (rm -f $@ && exit 1)
+ 
+ dummy:
+ .PHONY: dummy
 -- 
 2.17.1
 

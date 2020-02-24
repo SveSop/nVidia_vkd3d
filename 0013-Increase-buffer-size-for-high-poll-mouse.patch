@@ -1,0 +1,25 @@
+From c5fa245a59588ab622acec106c6c92e0edea0ffa Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Sveinar=20S=C3=B8pler?= <cybermax@dexter.no>
+Date: Sun, 23 Feb 2020 17:51:51 +0100
+Subject: [PATCH] Increase buffer size for high poll mouse
+
+---
+ dlls/dinput/device.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/dlls/dinput/device.c b/dlls/dinput/device.c
+index 84a4199..f5e56dc 100644
+--- a/dlls/dinput/device.c
++++ b/dlls/dinput/device.c
+@@ -1491,7 +1491,7 @@ HRESULT WINAPI IDirectInputDevice2WImpl_SetProperty(
+             EnterCriticalSection(&This->crit);
+ 
+             This->buffersize  = pd->dwData;
+-            This->queue_len = min(This->buffersize, 20);
++            This->queue_len = min(This->buffersize, 1024);
+             HeapFree(GetProcessHeap(), 0, This->data_queue);
+ 
+             This->data_queue = !This->queue_len ? NULL : HeapAlloc(GetProcessHeap(), 0,
+-- 
+2.17.1
+
