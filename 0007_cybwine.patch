@@ -1,6 +1,6 @@
-From 596beff24cd2e801fe326aaeb69d294ec378a464 Mon Sep 17 00:00:00 2001
+From aaf79c226223db0c499874d17eef2acd1077e492 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Sveinar=20S=C3=B8pler?= <cybermax@dexter.no>
-Date: Mon, 17 Feb 2020 15:48:57 +0100
+Date: Sat, 29 Feb 2020 13:38:43 +0100
 Subject: [PATCH] Cybwine
 
 ---
@@ -28,10 +28,10 @@ index 3f6c5bc..30d17ec 100644
  
          if (!CheckRemoteDebuggerPresent( GetCurrentProcess(), &being_debugged ))
 diff --git a/libs/wine/Makefile.in b/libs/wine/Makefile.in
-index f788b1b..aacbe6a 100644
+index f9e6410..3bc72cf 100644
 --- a/libs/wine/Makefile.in
 +++ b/libs/wine/Makefile.in
-@@ -98,7 +98,7 @@ libwine_LDFLAGS = $(LIBWINE_LDFLAGS)
+@@ -100,7 +100,7 @@ libwine_LDFLAGS = $(LIBWINE_LDFLAGS)
  libwine_DEPS = $(LIBWINE_DEPENDS)
  
  version.c: dummy

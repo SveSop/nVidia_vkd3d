@@ -65,10 +65,10 @@ Subject: [PATCH] Fsync
  create mode 100644 server/fsync.h
 
 diff --git a/dlls/ntdll/Makefile.in b/dlls/ntdll/Makefile.in
-index 7fae1ba..22a1749 100644
+index ac0d9eb..24d58de 100644
 --- a/dlls/ntdll/Makefile.in
 +++ b/dlls/ntdll/Makefile.in
-@@ -21,6 +21,7 @@ C_SRCS = \
+@@ -20,6 +20,7 @@ C_SRCS = \
  	esync.c \
  	exception.c \
  	file.c \
@@ -77,7 +77,7 @@ index 7fae1ba..22a1749 100644
  	heap.c \
  	large_int.c \
 diff --git a/dlls/ntdll/esync.c b/dlls/ntdll/esync.c
-index 87f3034..05f278c 100644
+index c2190f2..6b2e21f 100644
 --- a/dlls/ntdll/esync.c
 +++ b/dlls/ntdll/esync.c
 @@ -48,6 +48,7 @@
@@ -1649,7 +1649,7 @@ index ac6c85c..a280a8c 100644
          return esync_signal_and_wait( hSignalObject, hWaitObject, alertable, timeout );
  
 diff --git a/dlls/ntdll/thread.c b/dlls/ntdll/thread.c
-index cd1fdb4..3e8b9c7 100644
+index b798b2e..11ebd30 100644
 --- a/dlls/ntdll/thread.c
 +++ b/dlls/ntdll/thread.c
 @@ -361,6 +361,7 @@ TEB *thread_init(void)
@@ -2121,7 +2121,7 @@ index ed6acc5..71ba7a4 100644
      no_signal,                    /* signal */
      no_get_fd,                    /* get_fd */
 diff --git a/server/esync.c b/server/esync.c
-index bdc963c..9a52e46 100644
+index 4563b97..70f25db 100644
 --- a/server/esync.c
 +++ b/server/esync.c
 @@ -45,6 +45,7 @@
@@ -2150,7 +2150,7 @@ index bdc963c..9a52e46 100644
      atexit( shm_cleanup );
  }
  
-@@ -126,6 +129,7 @@ const struct object_ops esync_ops =
+@@ -129,6 +132,7 @@ const struct object_ops esync_ops =
      NULL,                      /* remove_queue */
      NULL,                      /* signaled */
      esync_get_esync_fd,        /* get_esync_fd */
@@ -3579,7 +3579,7 @@ index 4ac01e3..b491891 100644
      no_signal,                    /* signal */
      no_get_fd,                    /* get_fd */
 diff --git a/server/thread.c b/server/thread.c
-index 6f0d616..e31de44 100644
+index ad59622..276d76c 100644
 --- a/server/thread.c
 +++ b/server/thread.c
 @@ -52,6 +52,7 @@
