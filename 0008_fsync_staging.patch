@@ -1473,7 +1473,7 @@ index ef2cb8b..dc3a802 100644
          esync_close( handle );
  
 diff --git a/dlls/ntdll/sync.c b/dlls/ntdll/sync.c
-index ac6c85c..a280a8c 100644
+index 1475d09..e410bb7 100644
 --- a/dlls/ntdll/sync.c
 +++ b/dlls/ntdll/sync.c
 @@ -62,6 +62,7 @@
@@ -1484,7 +1484,7 @@ index ac6c85c..a280a8c 100644
  
  WINE_DEFAULT_DEBUG_CHANNEL(sync);
  
-@@ -251,6 +252,9 @@ NTSTATUS WINAPI NtCreateSemaphore( OUT PHANDLE SemaphoreHandle,
+@@ -261,6 +262,9 @@ NTSTATUS WINAPI NtCreateSemaphore( OUT PHANDLE SemaphoreHandle,
      if (MaximumCount <= 0 || InitialCount < 0 || InitialCount > MaximumCount)
          return STATUS_INVALID_PARAMETER;
  
@@ -1494,7 +1494,7 @@ index ac6c85c..a280a8c 100644
      if (do_esync())
          return esync_create_semaphore( SemaphoreHandle, access, attr, InitialCount, MaximumCount );
  
-@@ -280,6 +284,9 @@ NTSTATUS WINAPI NtOpenSemaphore( HANDLE *handle, ACCESS_MASK access, const OBJEC
+@@ -290,6 +294,9 @@ NTSTATUS WINAPI NtOpenSemaphore( HANDLE *handle, ACCESS_MASK access, const OBJEC
  
      if ((ret = validate_open_object_attributes( attr ))) return ret;
  
@@ -1504,7 +1504,7 @@ index ac6c85c..a280a8c 100644
      if (do_esync())
          return esync_open_semaphore( handle, access, attr );
  
-@@ -306,6 +313,9 @@ NTSTATUS WINAPI NtQuerySemaphore( HANDLE handle, SEMAPHORE_INFORMATION_CLASS cla
+@@ -316,6 +323,9 @@ NTSTATUS WINAPI NtQuerySemaphore( HANDLE handle, SEMAPHORE_INFORMATION_CLASS cla
      NTSTATUS ret;
      SEMAPHORE_BASIC_INFORMATION *out = info;
  
@@ -1514,7 +1514,7 @@ index ac6c85c..a280a8c 100644
      if (do_esync())
          return esync_query_semaphore( handle, class, info, len, ret_len );
  
-@@ -341,6 +351,9 @@ NTSTATUS WINAPI NtReleaseSemaphore( HANDLE handle, ULONG count, PULONG previous
+@@ -351,6 +361,9 @@ NTSTATUS WINAPI NtReleaseSemaphore( HANDLE handle, ULONG count, PULONG previous
  {
      NTSTATUS ret;
  
@@ -1524,7 +1524,7 @@ index ac6c85c..a280a8c 100644
      if (do_esync())
          return esync_release_semaphore( handle, count, previous );
  
-@@ -372,6 +385,9 @@ NTSTATUS WINAPI NtCreateEvent( PHANDLE EventHandle, ACCESS_MASK DesiredAccess,
+@@ -382,6 +395,9 @@ NTSTATUS WINAPI NtCreateEvent( PHANDLE EventHandle, ACCESS_MASK DesiredAccess,
      data_size_t len;
      struct object_attributes *objattr;
  
@@ -1534,7 +1534,7 @@ index ac6c85c..a280a8c 100644
      if (do_esync())
          return esync_create_event( EventHandle, DesiredAccess, attr, type, InitialState );
  
-@@ -402,6 +418,9 @@ NTSTATUS WINAPI NtOpenEvent( HANDLE *handle, ACCESS_MASK access, const OBJECT_AT
+@@ -412,6 +428,9 @@ NTSTATUS WINAPI NtOpenEvent( HANDLE *handle, ACCESS_MASK access, const OBJECT_AT
  
      if ((ret = validate_open_object_attributes( attr ))) return ret;
  
@@ -1544,7 +1544,7 @@ index ac6c85c..a280a8c 100644
      if (do_esync())
          return esync_open_event( handle, access, attr );
  
-@@ -428,6 +447,9 @@ NTSTATUS WINAPI NtSetEvent( HANDLE handle, LONG *prev_state )
+@@ -438,6 +457,9 @@ NTSTATUS WINAPI NtSetEvent( HANDLE handle, LONG *prev_state )
  {
      NTSTATUS ret;
  
@@ -1554,7 +1554,7 @@ index ac6c85c..a280a8c 100644
      if (do_esync())
          return esync_set_event( handle, prev_state );
  
-@@ -449,6 +471,9 @@ NTSTATUS WINAPI NtResetEvent( HANDLE handle, LONG *prev_state )
+@@ -459,6 +481,9 @@ NTSTATUS WINAPI NtResetEvent( HANDLE handle, LONG *prev_state )
  {
      NTSTATUS ret;
  
@@ -1564,7 +1564,7 @@ index ac6c85c..a280a8c 100644
      if (do_esync())
          return esync_reset_event( handle, prev_state );
  
-@@ -484,6 +509,9 @@ NTSTATUS WINAPI NtPulseEvent( HANDLE handle, LONG *prev_state )
+@@ -494,6 +519,9 @@ NTSTATUS WINAPI NtPulseEvent( HANDLE handle, LONG *prev_state )
  {
      NTSTATUS ret;
  
@@ -1574,7 +1574,7 @@ index ac6c85c..a280a8c 100644
      if (do_esync())
          return esync_pulse_event( handle, prev_state );
  
-@@ -507,6 +535,9 @@ NTSTATUS WINAPI NtQueryEvent( HANDLE handle, EVENT_INFORMATION_CLASS class,
+@@ -517,6 +545,9 @@ NTSTATUS WINAPI NtQueryEvent( HANDLE handle, EVENT_INFORMATION_CLASS class,
      NTSTATUS ret;
      EVENT_BASIC_INFORMATION *out = info;
  
@@ -1584,7 +1584,7 @@ index ac6c85c..a280a8c 100644
      if (do_esync())
          return esync_query_event( handle, class, info, len, ret_len );
  
-@@ -553,6 +584,9 @@ NTSTATUS WINAPI NtCreateMutant(OUT HANDLE* MutantHandle,
+@@ -563,6 +594,9 @@ NTSTATUS WINAPI NtCreateMutant(OUT HANDLE* MutantHandle,
      data_size_t len;
      struct object_attributes *objattr;
  
@@ -1594,7 +1594,7 @@ index ac6c85c..a280a8c 100644
      if (do_esync())
          return esync_create_mutex( MutantHandle, access, attr, InitialOwner );
  
-@@ -582,6 +616,9 @@ NTSTATUS WINAPI NtOpenMutant( HANDLE *handle, ACCESS_MASK access, const OBJECT_A
+@@ -592,6 +626,9 @@ NTSTATUS WINAPI NtOpenMutant( HANDLE *handle, ACCESS_MASK access, const OBJECT_A
  
      if ((status = validate_open_object_attributes( attr ))) return status;
  
@@ -1604,7 +1604,7 @@ index ac6c85c..a280a8c 100644
      if (do_esync())
          return esync_open_mutex( handle, access, attr );
  
-@@ -607,6 +644,9 @@ NTSTATUS WINAPI NtReleaseMutant( IN HANDLE handle, OUT PLONG prev_count OPTIONAL
+@@ -617,6 +654,9 @@ NTSTATUS WINAPI NtReleaseMutant( IN HANDLE handle, OUT PLONG prev_count OPTIONAL
  {
      NTSTATUS    status;
  
@@ -1614,7 +1614,7 @@ index ac6c85c..a280a8c 100644
      if (do_esync())
          return esync_release_mutex( handle, prev_count );
  
-@@ -630,6 +670,9 @@ NTSTATUS WINAPI NtQueryMutant( HANDLE handle, MUTANT_INFORMATION_CLASS class,
+@@ -640,6 +680,9 @@ NTSTATUS WINAPI NtQueryMutant( HANDLE handle, MUTANT_INFORMATION_CLASS class,
      NTSTATUS ret;
      MUTANT_BASIC_INFORMATION *out = info;
  
@@ -1624,7 +1624,7 @@ index ac6c85c..a280a8c 100644
      if (do_esync())
          return esync_query_mutex( handle, class, info, len, ret_len );
  
-@@ -1128,6 +1171,13 @@ static NTSTATUS wait_objects( DWORD count, const HANDLE *handles,
+@@ -1138,6 +1181,13 @@ static NTSTATUS wait_objects( DWORD count, const HANDLE *handles,
  
      if (!count || count > MAXIMUM_WAIT_OBJECTS) return STATUS_INVALID_PARAMETER_1;
  
@@ -1638,7 +1638,7 @@ index ac6c85c..a280a8c 100644
      if (do_esync())
      {
          NTSTATUS ret = esync_wait_objects( count, handles, wait_any, alertable, timeout );
-@@ -1171,6 +1221,9 @@ NTSTATUS WINAPI NtSignalAndWaitForSingleObject( HANDLE hSignalObject, HANDLE hWa
+@@ -1181,6 +1231,9 @@ NTSTATUS WINAPI NtSignalAndWaitForSingleObject( HANDLE hSignalObject, HANDLE hWa
      select_op_t select_op;
      UINT flags = SELECT_INTERRUPTIBLE;
  
@@ -1669,10 +1669,10 @@ index b798b2e..11ebd30 100644
      pthread_attr_init( &pthread_attr );
      pthread_attr_setstack( &pthread_attr, teb->DeallocationStack,
 diff --git a/include/wine/server_protocol.h b/include/wine/server_protocol.h
-index 6f7698b..305218d 100644
+index c5c2dc7..5399de7 100644
 --- a/include/wine/server_protocol.h
 +++ b/include/wine/server_protocol.h
-@@ -6111,6 +6111,92 @@ enum esync_type
+@@ -6113,6 +6113,92 @@ enum esync_type
      ESYNC_QUEUE,
  };
  
@@ -1765,7 +1765,7 @@ index 6f7698b..305218d 100644
  
  enum request
  {
-@@ -6430,6 +6516,11 @@ enum request
+@@ -6432,6 +6518,11 @@ enum request
      REQ_get_esync_fd,
      REQ_get_esync_apc_fd,
      REQ_esync_msgwait,
@@ -1777,7 +1777,7 @@ index 6f7698b..305218d 100644
      REQ_NB_REQUESTS
  };
  
-@@ -6753,6 +6844,11 @@ union generic_request
+@@ -6755,6 +6846,11 @@ union generic_request
      struct get_esync_fd_request get_esync_fd_request;
      struct get_esync_apc_fd_request get_esync_apc_fd_request;
      struct esync_msgwait_request esync_msgwait_request;
@@ -1789,7 +1789,7 @@ index 6f7698b..305218d 100644
  };
  union generic_reply
  {
-@@ -7074,6 +7170,11 @@ union generic_reply
+@@ -7076,6 +7172,11 @@ union generic_reply
      struct get_esync_fd_reply get_esync_fd_reply;
      struct get_esync_apc_fd_reply get_esync_apc_fd_reply;
      struct esync_msgwait_reply esync_msgwait_reply;
@@ -1800,7 +1800,7 @@ index 6f7698b..305218d 100644
 +    struct get_fsync_apc_idx_reply get_fsync_apc_idx_reply;
  };
  
- #define SERVER_PROTOCOL_VERSION 596
+ #define SERVER_PROTOCOL_VERSION 597
 diff --git a/server/Makefile.in b/server/Makefile.in
 index 1cae40e..42dc8f2 100644
 --- a/server/Makefile.in
@@ -1991,7 +1991,7 @@ index b756eb4..0fe56d5 100644
      no_signal,                     /* signal */
      no_get_fd,                     /* get_fd */
 diff --git a/server/device.c b/server/device.c
-index 6df56e1..4bffdc6 100644
+index 3380d00..889f92a 100644
 --- a/server/device.c
 +++ b/server/device.c
 @@ -40,6 +40,7 @@
@@ -2048,7 +2048,7 @@ index 6df56e1..4bffdc6 100644
      no_satisfied,                     /* satisfied */
      no_signal,                        /* signal */
      device_file_get_fd,               /* get_fd */
-@@ -742,6 +749,9 @@ static void delete_file( struct device_file *file )
+@@ -746,6 +753,9 @@ static void delete_file( struct device_file *file )
      /* terminate all pending requests */
      LIST_FOR_EACH_ENTRY_SAFE( irp, next, &file->requests, struct irp_call, dev_entry )
      {
@@ -2058,7 +2058,7 @@ index 6df56e1..4bffdc6 100644
          if (do_esync() && file->device->manager && list_empty( &file->device->manager->requests ))
              esync_clear( file->device->manager->esync_fd );
  
-@@ -788,6 +798,13 @@ static int device_manager_get_esync_fd( struct object *obj, enum esync_type *typ
+@@ -791,6 +801,13 @@ static int device_manager_get_esync_fd( struct object *obj, enum esync_type *typ
      return manager->esync_fd;
  }
  
@@ -2072,7 +2072,7 @@ index 6df56e1..4bffdc6 100644
  static void device_manager_destroy( struct object *obj )
  {
      struct device_manager *manager = (struct device_manager *)obj;
-@@ -840,6 +857,9 @@ static struct device_manager *create_device_manager(void)
+@@ -841,6 +858,9 @@ static struct device_manager *create_device_manager(void)
          list_init( &manager->requests );
          wine_rb_init( &manager->kernel_objects, compare_kernel_object );
  
@@ -2082,7 +2082,7 @@ index 6df56e1..4bffdc6 100644
          if (do_esync())
              manager->esync_fd = esync_create_fd( 0, 0 );
      }
-@@ -1007,11 +1027,14 @@ DECL_HANDLER(get_next_device_request)
+@@ -1008,11 +1028,14 @@ DECL_HANDLER(get_next_device_request)
                  /* we already own the object if it's only on manager queue */
                  if (irp->file) grab_object( irp );
                  manager->current_call = irp;
@@ -2281,7 +2281,7 @@ index 895c1b8..3c0b273 100644
  {
      struct event *event = (struct event *)obj;
 diff --git a/server/fd.c b/server/fd.c
-index 18b57d8..07afc97 100644
+index a76c224..6e680ac 100644
 --- a/server/fd.c
 +++ b/server/fd.c
 @@ -102,6 +102,7 @@
@@ -2397,7 +2397,7 @@ index 18b57d8..07afc97 100644
  unsigned int default_fd_map_access( struct object *obj, unsigned int access )
  {
 diff --git a/server/file.c b/server/file.c
-index 05d3610..94be334 100644
+index 6e289e2..d766328 100644
 --- a/server/file.c
 +++ b/server/file.c
 @@ -97,6 +97,7 @@ static const struct object_ops file_ops =
@@ -2409,7 +2409,7 @@ index 05d3610..94be334 100644
      no_signal,                    /* signal */
      file_get_fd,                  /* get_fd */
 diff --git a/server/file.h b/server/file.h
-index abac370..e946db0 100644
+index c2419d6..a6067e5 100644
 --- a/server/file.h
 +++ b/server/file.h
 @@ -104,6 +104,7 @@ extern char *dup_fd_name( struct fd *root, const char *name );
@@ -3220,10 +3220,10 @@ index 8e4dc83..5091ad4 100644
  
  struct process_snapshot
 diff --git a/server/protocol.def b/server/protocol.def
-index 85cc2ac..611eaa5 100644
+index 195ee4c..c7f323b 100644
 --- a/server/protocol.def
 +++ b/server/protocol.def
-@@ -4034,6 +4034,60 @@ struct handle_info
+@@ -4035,6 +4035,60 @@ struct handle_info
      obj_handle_t handle;          /* handle to the job */
  @END
  
@@ -3436,7 +3436,7 @@ index 47f460c..b8c1ad9 100644
      no_signal,                     /* signal */
      no_get_fd,                     /* get_fd */
 diff --git a/server/request.h b/server/request.h
-index 24d9ff7..915bc08 100644
+index c972131..0ede76b 100644
 --- a/server/request.h
 +++ b/server/request.h
 @@ -429,6 +429,11 @@ DECL_HANDLER(open_esync);
@@ -3463,7 +3463,7 @@ index 24d9ff7..915bc08 100644
  };
  
  C_ASSERT( sizeof(affinity_t) == 8 );
-@@ -2565,6 +2575,34 @@ C_ASSERT( sizeof(struct get_esync_fd_reply) == 16 );
+@@ -2566,6 +2576,34 @@ C_ASSERT( sizeof(struct get_esync_fd_reply) == 16 );
  C_ASSERT( sizeof(struct get_esync_apc_fd_request) == 16 );
  C_ASSERT( FIELD_OFFSET(struct esync_msgwait_request, in_msgwait) == 12 );
  C_ASSERT( sizeof(struct esync_msgwait_request) == 16 );
@@ -3782,10 +3782,10 @@ index 036746a..975ea5f 100644
      no_signal,                 /* signal */
      no_get_fd,                 /* get_fd */
 diff --git a/server/trace.c b/server/trace.c
-index df7085e..b188cfe 100644
+index 226a788..1a81e4d 100644
 --- a/server/trace.c
 +++ b/server/trace.c
-@@ -4792,6 +4792,63 @@ static void dump_esync_msgwait_request( const struct esync_msgwait_request *req
+@@ -4793,6 +4793,63 @@ static void dump_esync_msgwait_request( const struct esync_msgwait_request *req
      fprintf( stderr, " in_msgwait=%d", req->in_msgwait );
  }
  
@@ -3849,7 +3849,7 @@ index df7085e..b188cfe 100644
  static const dump_func req_dumpers[REQ_NB_REQUESTS] = {
      (dump_func)dump_new_process_request,
      (dump_func)dump_exec_process_request,
-@@ -5109,6 +5166,11 @@ static const dump_func req_dumpers[REQ_NB_REQUESTS] = {
+@@ -5110,6 +5167,11 @@ static const dump_func req_dumpers[REQ_NB_REQUESTS] = {
      (dump_func)dump_get_esync_fd_request,
      (dump_func)dump_get_esync_apc_fd_request,
      (dump_func)dump_esync_msgwait_request,
@@ -3861,7 +3861,7 @@ index df7085e..b188cfe 100644
  };
  
  static const dump_func reply_dumpers[REQ_NB_REQUESTS] = {
-@@ -5428,6 +5490,11 @@ static const dump_func reply_dumpers[REQ_NB_REQUESTS] = {
+@@ -5429,6 +5491,11 @@ static const dump_func reply_dumpers[REQ_NB_REQUESTS] = {
      (dump_func)dump_get_esync_fd_reply,
      NULL,
      NULL,
@@ -3873,7 +3873,7 @@ index df7085e..b188cfe 100644
  };
  
  static const char * const req_names[REQ_NB_REQUESTS] = {
-@@ -5747,6 +5814,11 @@ static const char * const req_names[REQ_NB_REQUESTS] = {
+@@ -5748,6 +5815,11 @@ static const char * const req_names[REQ_NB_REQUESTS] = {
      "get_esync_fd",
      "get_esync_apc_fd",
      "esync_msgwait",

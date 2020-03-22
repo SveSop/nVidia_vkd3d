@@ -14,12 +14,16 @@ nVidia patches &amp; hacks for vkd3d and wine-staging
 0010 : `D3D12CreateVersionedRootSignatureDeserializer.patch`:&nbsp;&nbsp; D3D12 patch needed for vkd3d and WoW  
 0011 : `Add-some-semi-stubs-in-user32.patch`:&nbsp;&nbsp; Add some user32 stubs  
 0012 : `origin_downloads.patch`:&nbsp;&nbsp; Fix downloading with Origin client  
+0013 : `proton-win10-default.patch`:&nbsp;&nbsp; Set Windows 10 as default version  
 
 **Patches for vkd3d:**  
 Support_RS_1.0_Volatile.patch  
 This patches are needed for World of Warcraft 8.1.5+  
 Download latest GIT from: https://source.winehq.org/git/vkd3d.git/  
 Patch vkd3d with Support_RS_1.0_Volatile.patch and compile.  
+
+**Experimental vkd3d branch:**  
+https://github.com/SveSop/vkd3d-HK  
 
 **Ubuntu users:**
 I try to maintain a git-updated vkd3d on my PPA: [https://launchpad.net/~cybermax-dexter/+archive/ubuntu/vkd3d](https://launchpad.net/~cybermax-dexter/+archive/ubuntu/vkd3d)  

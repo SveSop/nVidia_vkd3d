@@ -9,10 +9,10 @@ Subject: nvidia hate
  2 files changed, 16 deletions(-)
 
 diff --git a/configure b/configure
-index 2e3202a..e9b4d8c 100755
+index c3c886e..da1a943 100755
 --- a/configure
 +++ b/configure
-@@ -21645,14 +21645,6 @@ wine_fn_config_makefile dlls/ntoskrnl.exe enable_ntoskrnl_exe
+@@ -21706,14 +21706,6 @@ wine_fn_config_makefile dlls/ntoskrnl.exe enable_ntoskrnl_exe
  wine_fn_config_makefile dlls/ntoskrnl.exe/tests enable_tests
  wine_fn_config_makefile dlls/ntprint enable_ntprint
  wine_fn_config_makefile dlls/ntprint/tests enable_tests
@@ -28,10 +28,10 @@ index 2e3202a..e9b4d8c 100755
  wine_fn_config_makefile dlls/odbc32 enable_odbc32
  wine_fn_config_makefile dlls/odbcbcp enable_odbcbcp
 diff --git a/configure.ac b/configure.ac
-index cb6eedc..6055e25 100644
+index 2adc1b1..3826451 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -3638,14 +3638,6 @@ WINE_CONFIG_MAKEFILE(dlls/ntoskrnl.exe)
+@@ -3660,14 +3660,6 @@ WINE_CONFIG_MAKEFILE(dlls/ntoskrnl.exe)
  WINE_CONFIG_MAKEFILE(dlls/ntoskrnl.exe/tests)
  WINE_CONFIG_MAKEFILE(dlls/ntprint)
  WINE_CONFIG_MAKEFILE(dlls/ntprint/tests)

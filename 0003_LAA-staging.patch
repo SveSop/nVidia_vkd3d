@@ -189,10 +189,10 @@ index 45484a8..d1ddcc3 100644
      /* elevate process if necessary */
      status = RtlQueryInformationActivationContext( 0, NULL, 0, RunlevelInformationInActivationContext,
 diff --git a/dlls/ntdll/ntdll.spec b/dlls/ntdll/ntdll.spec
-index e1fa62b..ff7a92b 100644
+index bceb691..99c9c7b 100644
 --- a/dlls/ntdll/ntdll.spec
 +++ b/dlls/ntdll/ntdll.spec
-@@ -1568,6 +1568,7 @@
+@@ -1571,6 +1571,7 @@
  
  # Virtual memory
  @ cdecl __wine_locked_recvmsg(long ptr long)
