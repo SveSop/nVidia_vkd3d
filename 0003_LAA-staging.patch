@@ -48,10 +48,10 @@ index 6c5219b..e90af96 100644
          if (lpBuffer->dwTotalPhys > MAXLONG) lpBuffer->dwTotalPhys = MAXLONG;
          if (lpBuffer->dwAvailPhys > MAXLONG) lpBuffer->dwAvailPhys = MAXLONG;
 diff --git a/dlls/ntdll/loader.c b/dlls/ntdll/loader.c
-index 45484a8..d1ddcc3 100644
+index 681b7f4..d770437 100644
 --- a/dlls/ntdll/loader.c
 +++ b/dlls/ntdll/loader.c
-@@ -2497,6 +2497,127 @@ static NTSTATUS open_dll_file( UNICODE_STRING *nt_name, WINE_MODREF **pwm,
+@@ -2730,6 +2730,127 @@ static NTSTATUS open_dll_file( UNICODE_STRING *nt_name, WINE_MODREF **pwm,
      return status;
  }
  
@@ -179,7 +179,7 @@ index 45484a8..d1ddcc3 100644
  
  /******************************************************************************
   *	load_native_dll  (internal)
-@@ -4565,7 +4686,7 @@ void __wine_process_init(void)
+@@ -4887,7 +5008,7 @@ void __wine_process_init(void)
      user_shared_data_init();
      hidden_exports_init( wm->ldr.FullDllName.Buffer );
  
@@ -189,10 +189,10 @@ index 45484a8..d1ddcc3 100644
      /* elevate process if necessary */
      status = RtlQueryInformationActivationContext( 0, NULL, 0, RunlevelInformationInActivationContext,
 diff --git a/dlls/ntdll/ntdll.spec b/dlls/ntdll/ntdll.spec
-index bceb691..99c9c7b 100644
+index dc70320..5534666 100644
 --- a/dlls/ntdll/ntdll.spec
 +++ b/dlls/ntdll/ntdll.spec
-@@ -1571,6 +1571,7 @@
+@@ -1576,6 +1576,7 @@
  
  # Virtual memory
  @ cdecl __wine_locked_recvmsg(long ptr long)
@@ -201,10 +201,10 @@ index bceb691..99c9c7b 100644
  # Token
  @ cdecl __wine_create_default_token(long)
 diff --git a/dlls/ntdll/ntdll_misc.h b/dlls/ntdll/ntdll_misc.h
-index 6f69dc7..7140dfd 100644
+index 1deee07..efd1013 100644
 --- a/dlls/ntdll/ntdll_misc.h
 +++ b/dlls/ntdll/ntdll_misc.h
-@@ -202,7 +202,7 @@ extern SIZE_T virtual_uninterrupted_read_memory( const void *addr, void *buffer,
+@@ -215,7 +215,7 @@ extern SIZE_T virtual_uninterrupted_read_memory( const void *addr, void *buffer,
  extern NTSTATUS virtual_uninterrupted_write_memory( void *addr, const void *buffer, SIZE_T size ) DECLSPEC_HIDDEN;
  extern void VIRTUAL_SetForceExec( BOOL enable ) DECLSPEC_HIDDEN;
  extern void virtual_release_address_space(void) DECLSPEC_HIDDEN;
@@ -214,10 +214,10 @@ index 6f69dc7..7140dfd 100644
                                              SECTION_IMAGE_INFORMATION *info ) DECLSPEC_HIDDEN;
  extern struct _KUSER_SHARED_DATA *user_shared_data DECLSPEC_HIDDEN;
 diff --git a/dlls/ntdll/virtual.c b/dlls/ntdll/virtual.c
-index 49f3a53..4d0870e 100644
+index fa39a67..5f32976 100644
 --- a/dlls/ntdll/virtual.c
 +++ b/dlls/ntdll/virtual.c
-@@ -2779,11 +2779,12 @@ void virtual_release_address_space(void)
+@@ -2778,11 +2778,12 @@ void virtual_release_address_space(void)
   *
   * Enable use of a large address space when allowed by the application.
   */

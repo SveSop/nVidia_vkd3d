@@ -28,7 +28,7 @@ index 3f6c5bc..30d17ec 100644
  
          if (!CheckRemoteDebuggerPresent( GetCurrentProcess(), &being_debugged ))
 diff --git a/libs/wine/Makefile.in b/libs/wine/Makefile.in
-index f9e6410..3bc72cf 100644
+index 1e55a6b..4271497 100644
 --- a/libs/wine/Makefile.in
 +++ b/libs/wine/Makefile.in
 @@ -100,7 +100,7 @@ libwine_LDFLAGS = $(LIBWINE_LDFLAGS)

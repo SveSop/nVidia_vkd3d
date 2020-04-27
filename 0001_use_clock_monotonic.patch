@@ -10,10 +10,10 @@ Using CLOCK_MONOTONIC avoids a kernel call.
  2 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/dlls/ntdll/time.c b/dlls/ntdll/time.c
-index 4e3d558..1459889 100644
+index b42a621..13a4852 100644
 --- a/dlls/ntdll/time.c
 +++ b/dlls/ntdll/time.c
-@@ -118,7 +118,7 @@ static inline ULONGLONG monotonic_counter(void)
+@@ -117,7 +117,7 @@ static inline ULONGLONG monotonic_counter(void)
      return mach_absolute_time() * timebase.numer / timebase.denom / 100;
  #elif defined(HAVE_CLOCK_GETTIME)
      struct timespec ts;
@@ -23,17 +23,17 @@ index 4e3d558..1459889 100644
          return ts.tv_sec * (ULONGLONG)TICKSPERSEC + ts.tv_nsec / 100;
  #endif
 diff --git a/server/request.c b/server/request.c
-index e264880..fb2a6d2 100644
+index 6d2011f..b9aa91a 100644
 --- a/server/request.c
 +++ b/server/request.c
-@@ -538,7 +538,7 @@ unsigned int get_tick_count(void)
-     return mach_absolute_time() * timebase.numer / timebase.denom / 1000000;
+@@ -538,7 +538,7 @@ timeout_t monotonic_counter(void)
+     return mach_absolute_time() * timebase.numer / timebase.denom / 100;
  #elif defined(HAVE_CLOCK_GETTIME)
      struct timespec ts;
 -#ifdef CLOCK_MONOTONIC_RAW
 +#if 0
      if (!clock_gettime( CLOCK_MONOTONIC_RAW, &ts ))
-         return ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
+         return (timeout_t)ts.tv_sec * TICKS_PER_SEC + ts.tv_nsec / 100;
  #endif
 -- 
 2.17.1

@@ -1,25 +1,29 @@
+From 3364858c693491ed510dbe0066a2dec692bc2965 Mon Sep 17 00:00:00 2001
+Date: Sat, 25 Apr 2020 16:44:16 +0200
+Subject: Woff Patch
+
 Wine-Bug: https://bugs.winehq.org/show_bug.cgi?id=45277
 Signed-off-by: Felix Hädicke <felixhaedicke at web.de>
----
 Changes in v2:
  - add missing XUniqueContext() initialisation for vulkan_swapchain_surface_context
 
+---
  dlls/winex11.drv/vulkan.c | 60 +++++++++++++++++++++++++++++++++------
  1 file changed, 51 insertions(+), 9 deletions(-)
 
 diff --git a/dlls/winex11.drv/vulkan.c b/dlls/winex11.drv/vulkan.c
-index 9f51270..b0bba86 100644
+index 5c5c459..de14eda 100644
 --- a/dlls/winex11.drv/vulkan.c
 +++ b/dlls/winex11.drv/vulkan.c
-@@ -33,6 +33,7 @@
+@@ -32,6 +32,7 @@
+ #include "wine/debug.h"
  #include "wine/heap.h"
- #include "wine/library.h"
  #include "x11drv.h"
 +#include "xcomposite.h"
  
  #define VK_NO_PROTOTYPES
  #define WINE_VK_HOST
-@@ -57,6 +58,7 @@ static CRITICAL_SECTION_DEBUG critsect_debug =
+@@ -56,6 +57,7 @@ static CRITICAL_SECTION_DEBUG critsect_debug =
  static CRITICAL_SECTION context_section = { &critsect_debug, -1, 0, 0, 0, 0 };
  
  static XContext vulkan_hwnd_context;
@@ -27,7 +31,7 @@ index 9f51270..b0bba86 100644
  
  #define VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR 1000004000
  
-@@ -64,6 +66,7 @@ struct wine_vk_surface
+@@ -63,6 +65,7 @@ struct wine_vk_surface
  {
      LONG ref;
      Window window;
@@ -35,7 +39,7 @@ index 9f51270..b0bba86 100644
      VkSurfaceKHR surface; /* native surface */
  };
  
-@@ -145,6 +148,7 @@ static BOOL WINAPI wine_vk_init(INIT_ONCE *once, void *param, void **context)
+@@ -148,6 +151,7 @@ static BOOL WINAPI wine_vk_init(INIT_ONCE *once, void *param, void **context)
  #undef LOAD_OPTIONAL_FUNCPTR
  
      vulkan_hwnd_context = XUniqueContext();
@@ -43,7 +47,7 @@ index 9f51270..b0bba86 100644
  
      return TRUE;
  
-@@ -262,16 +266,24 @@ static VkResult X11DRV_vkCreateSwapchainKHR(VkDevice device,
+@@ -265,16 +269,24 @@ static VkResult X11DRV_vkCreateSwapchainKHR(VkDevice device,
          const VkSwapchainCreateInfoKHR *create_info,
          const VkAllocationCallbacks *allocator, VkSwapchainKHR *swapchain)
  {
@@ -70,7 +74,7 @@ index 9f51270..b0bba86 100644
  }
  
  static VkResult X11DRV_vkCreateWin32SurfaceKHR(VkInstance instance,
-@@ -287,13 +299,6 @@ static VkResult X11DRV_vkCreateWin32SurfaceKHR(VkInstance instance,
+@@ -290,13 +302,6 @@ static VkResult X11DRV_vkCreateWin32SurfaceKHR(VkInstance instance,
      if (allocator)
          FIXME("Support for allocation callbacks not implemented yet\n");
  
@@ -84,7 +88,7 @@ index 9f51270..b0bba86 100644
      x11_surface = heap_alloc_zero(sizeof(*x11_surface));
      if (!x11_surface)
          return VK_ERROR_OUT_OF_HOST_MEMORY;
-@@ -310,6 +315,27 @@ static VkResult X11DRV_vkCreateWin32SurfaceKHR(VkInstance instance,
+@@ -313,6 +318,27 @@ static VkResult X11DRV_vkCreateWin32SurfaceKHR(VkInstance instance,
          goto err;
      }
  
@@ -112,7 +116,7 @@ index 9f51270..b0bba86 100644
      create_info_host.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
      create_info_host.pNext = NULL;
      create_info_host.flags = 0; /* reserved */
-@@ -379,6 +405,7 @@ static void X11DRV_vkDestroySwapchainKHR(VkDevice device, VkSwapchainKHR swapcha
+@@ -382,6 +408,7 @@ static void X11DRV_vkDestroySwapchainKHR(VkDevice device, VkSwapchainKHR swapcha
          FIXME("Support for allocation callbacks not implemented yet\n");
  
      pvkDestroySwapchainKHR(device, swapchain, NULL /* allocator */);
@@ -120,7 +124,7 @@ index 9f51270..b0bba86 100644
  }
  
  static VkResult X11DRV_vkEnumerateInstanceExtensionProperties(const char *layer_name,
-@@ -551,6 +578,21 @@ static VkResult X11DRV_vkQueuePresentKHR(VkQueue queue, const VkPresentInfoKHR *
+@@ -608,6 +635,21 @@ static VkResult X11DRV_vkQueuePresentKHR(VkQueue queue, const VkPresentInfoKHR *
          }
      }
  
