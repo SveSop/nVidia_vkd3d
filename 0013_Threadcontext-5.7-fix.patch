@@ -1,14 +1,13 @@
-From 461662f7d6583ef4bb3070477646a482533ef3a5 Mon Sep 17 00:00:00 2001
-From: =?UTF-8?q?Sveinar=20S=C3=B8pler?= <cybermax@dexter.no>
-Date: Mon, 27 Apr 2020 16:00:49 +0200
-Subject: [PATCH] Threadcontext 5.7 fix
+From c3fac6e36caab168974dd04a60ae1bbb1a0fd919 Mon Sep 17 00:00:00 2001
+From: Jacek Caban <jacek@codeweavers.com>
+Date: Sat, 25 Apr 2020 21:13:33 +0200
+Subject: [PATCH] server: Fix setting context flags in get_thread_context.
 
-This fixes crashes with wine-staging-5.7 ref
-https://bugs.winehq.org/show_bug.cgi?id=49011
-https://source.winehq.org/patches/data/184252
+Wine-Bug: https://bugs.winehq.org/show_bug.cgi?id=49011
+Signed-off-by: Jacek Caban <jacek@codeweavers.com>
+Signed-off-by: Alexandre Julliard <julliard@winehq.org>
 
 Rebased for wine-staging-5.7
-
 Signed-off-by: Sveinar Søpler <cybermax@dexter.no>
 ---
  dlls/kernel32/tests/thread.c | 15 +++++++++++++++
