@@ -1,7 +1,7 @@
+From 220ab327f6cff3c6b6f387aa4851ddeb569fa9f3 Mon Sep 17 00:00:00 2001
 From: Tk-Glitch <ti3nou@gmail.com>
 Date: Thu, 8 Aug 2019 14:44:43 +0200
-Subject: Prepare for Fsync14 Dec 2019 17:02:11 +0100
-Subject: [PATCH] Fsync
+Subject: Prepare for Fsync
 
 ---
  dlls/ntdll/Makefile.in         |    1 +
@@ -65,7 +65,7 @@ Subject: [PATCH] Fsync
  create mode 100644 server/fsync.h
 
 diff --git a/dlls/ntdll/Makefile.in b/dlls/ntdll/Makefile.in
-index c29e3a4..aad724c 100644
+index 2f26f0d..0108f8d 100644
 --- a/dlls/ntdll/Makefile.in
 +++ b/dlls/ntdll/Makefile.in
 @@ -20,6 +20,7 @@ C_SRCS = \
@@ -77,7 +77,7 @@ index c29e3a4..aad724c 100644
  	heap.c \
  	large_int.c \
 diff --git a/dlls/ntdll/esync.c b/dlls/ntdll/esync.c
-index 5fb999c..cc6ea28 100644
+index bd0fd4c..1566b76 100644
 --- a/dlls/ntdll/esync.c
 +++ b/dlls/ntdll/esync.c
 @@ -48,6 +48,7 @@
@@ -113,7 +113,7 @@ index 5fb999c..cc6ea28 100644
      if (!(*obj = get_cached_object( handle )))
 diff --git a/dlls/ntdll/fsync.c b/dlls/ntdll/fsync.c
 new file mode 100644
-index 0000000..5f63bdf
+index 0000000..9f1d689
 --- /dev/null
 +++ b/dlls/ntdll/fsync.c
 @@ -0,0 +1,1243 @@
@@ -498,8 +498,8 @@ index 0000000..5f63bdf
 +        return;
 +    }
 +
-+    if (stat( wine_get_config_dir(), &st ) == -1)
-+        ERR("Cannot stat %s\n", wine_get_config_dir());
++    if (stat( config_dir, &st ) == -1)
++        ERR("Cannot stat %s\n", config_dir);
 +
 +    if (st.st_ino != (unsigned long)st.st_ino)
 +        sprintf( shm_name, "/wine-%lx%08lx-fsync", (unsigned long)((unsigned long long)st.st_ino >> 32), (unsigned long)st.st_ino );
@@ -1419,7 +1419,7 @@ index 0000000..487e43d
 +extern NTSTATUS fsync_signal_and_wait( HANDLE signal, HANDLE wait,
 +    BOOLEAN alertable, const LARGE_INTEGER *timeout ) DECLSPEC_HIDDEN;
 diff --git a/dlls/ntdll/loader.c b/dlls/ntdll/loader.c
-index d770437..c7d2eec 100644
+index 97d0d2e..babac18 100644
 --- a/dlls/ntdll/loader.c
 +++ b/dlls/ntdll/loader.c
 @@ -52,6 +52,7 @@
@@ -1430,7 +1430,7 @@ index d770437..c7d2eec 100644
  
  WINE_DEFAULT_DEBUG_CHANNEL(module);
  WINE_DECLARE_DEBUG_CHANNEL(relay);
-@@ -4915,6 +4916,7 @@ void __wine_process_init(void)
+@@ -4883,6 +4884,7 @@ void __wine_process_init(void)
      peb->ProcessHeap = RtlCreateHeap( HEAP_GROWABLE, NULL, 0, 0, NULL, NULL );
      peb->LoaderLock = &loader_section;
  
@@ -1439,10 +1439,10 @@ index d770437..c7d2eec 100644
  
      init_unix_codepage();
 diff --git a/dlls/ntdll/ntdll_misc.h b/dlls/ntdll/ntdll_misc.h
-index efd1013..c9a5880 100644
+index 4ed3a68..b6c779e 100644
 --- a/dlls/ntdll/ntdll_misc.h
 +++ b/dlls/ntdll/ntdll_misc.h
-@@ -301,6 +301,7 @@ struct ntdll_thread_data
+@@ -311,6 +311,7 @@ struct ntdll_thread_data
      struct debug_info *debug_info;    /* info for debugstr functions */
      int                esync_queue_fd;/* fd to wait on for driver events */
      int                esync_apc_fd;  /* fd to wait on for user APCs */
@@ -1473,7 +1473,7 @@ index aa7c665..aa839f3 100644
          esync_close( handle );
  
 diff --git a/dlls/ntdll/sync.c b/dlls/ntdll/sync.c
-index df2aea8..f94543a 100644
+index 7763b7b..dddabea 100644
 --- a/dlls/ntdll/sync.c
 +++ b/dlls/ntdll/sync.c
 @@ -62,6 +62,7 @@
@@ -1649,18 +1649,18 @@ index df2aea8..f94543a 100644
          return esync_signal_and_wait( hSignalObject, hWaitObject, alertable, timeout );
  
 diff --git a/dlls/ntdll/thread.c b/dlls/ntdll/thread.c
-index ed0b788..c4eab52 100644
+index 80ef8e7..81ea88d 100644
 --- a/dlls/ntdll/thread.c
 +++ b/dlls/ntdll/thread.c
-@@ -361,6 +361,7 @@ TEB *thread_init(void)
+@@ -350,6 +350,7 @@ TEB *thread_init(void)
      thread_data->wait_fd[1] = -1;
      thread_data->esync_queue_fd = -1;
      thread_data->esync_apc_fd = -1;
 +    thread_data->fsync_apc_futex = NULL;
  
-     signal_init_thread( teb );
-     virtual_init_threading();
-@@ -762,6 +763,7 @@ NTSTATUS WINAPI NtCreateThreadEx( HANDLE *handle_ptr, ACCESS_MASK access, OBJECT
+     debug_init();
+     init_paths();
+@@ -659,6 +660,7 @@ NTSTATUS WINAPI NtCreateThreadEx( HANDLE *handle_ptr, ACCESS_MASK access, OBJECT
      thread_data->start_stack = (char *)teb->Tib.StackBase;
      thread_data->esync_queue_fd = -1;
      thread_data->esync_apc_fd = -1;
@@ -1669,10 +1669,10 @@ index ed0b788..c4eab52 100644
      pthread_attr_init( &pthread_attr );
      pthread_attr_setstack( &pthread_attr, teb->DeallocationStack,
 diff --git a/include/wine/server_protocol.h b/include/wine/server_protocol.h
-index 5259815..d59ada1 100644
+index 4c955d7..1127676 100644
 --- a/include/wine/server_protocol.h
 +++ b/include/wine/server_protocol.h
-@@ -6093,6 +6093,92 @@ enum esync_type
+@@ -6094,6 +6094,92 @@ enum esync_type
      ESYNC_QUEUE,
  };
  
@@ -1765,7 +1765,7 @@ index 5259815..d59ada1 100644
  
  enum request
  {
-@@ -6410,6 +6496,11 @@ enum request
+@@ -6411,6 +6497,11 @@ enum request
      REQ_get_esync_fd,
      REQ_get_esync_apc_fd,
      REQ_esync_msgwait,
@@ -1777,7 +1777,7 @@ index 5259815..d59ada1 100644
      REQ_NB_REQUESTS
  };
  
-@@ -6731,6 +6822,11 @@ union generic_request
+@@ -6732,6 +6823,11 @@ union generic_request
      struct get_esync_fd_request get_esync_fd_request;
      struct get_esync_apc_fd_request get_esync_apc_fd_request;
      struct esync_msgwait_request esync_msgwait_request;
@@ -1789,7 +1789,7 @@ index 5259815..d59ada1 100644
  };
  union generic_reply
  {
-@@ -7050,6 +7146,11 @@ union generic_reply
+@@ -7051,6 +7147,11 @@ union generic_reply
      struct get_esync_fd_reply get_esync_fd_reply;
      struct get_esync_apc_fd_reply get_esync_apc_fd_reply;
      struct esync_msgwait_reply esync_msgwait_reply;
@@ -1846,7 +1846,7 @@ index 96717a1..81df956 100644
      no_signal,                    /* signal */
      no_get_fd,                    /* get_fd */
 diff --git a/server/change.c b/server/change.c
-index dd45aa9..0274ec5 100644
+index c5c70c0..de10ffa 100644
 --- a/server/change.c
 +++ b/server/change.c
 @@ -116,6 +116,7 @@ static const struct object_ops dir_ops =
@@ -1882,7 +1882,7 @@ index e8e2565..33a5aa9 100644
      no_signal,                 /* signal */
      no_get_fd,                 /* get_fd */
 diff --git a/server/console.c b/server/console.c
-index 806293a..6f29b9a 100644
+index c0f5278..997b7c7 100644
 --- a/server/console.c
 +++ b/server/console.c
 @@ -39,6 +39,7 @@
@@ -2121,7 +2121,7 @@ index beef4c3..9df23c7 100644
      no_signal,                    /* signal */
      no_get_fd,                    /* get_fd */
 diff --git a/server/esync.c b/server/esync.c
-index 4563b97..70f25db 100644
+index dbf9ede..bd87081 100644
 --- a/server/esync.c
 +++ b/server/esync.c
 @@ -45,6 +45,7 @@
@@ -2409,7 +2409,7 @@ index 6e289e2..d766328 100644
      no_signal,                    /* signal */
      file_get_fd,                  /* get_fd */
 diff --git a/server/file.h b/server/file.h
-index dcf1497..1add5be 100644
+index f4eafb1..ffaa66c 100644
 --- a/server/file.h
 +++ b/server/file.h
 @@ -104,6 +104,7 @@ extern char *dup_fd_name( struct fd *root, const char *name );
@@ -2422,7 +2422,7 @@ index dcf1497..1add5be 100644
  extern void default_poll_event( struct fd *fd, int event );
 diff --git a/server/fsync.c b/server/fsync.c
 new file mode 100644
-index 0000000..e4ee30f
+index 0000000..11035b3
 --- /dev/null
 +++ b/server/fsync.c
 @@ -0,0 +1,492 @@
@@ -2653,7 +2653,7 @@ index 0000000..e4ee30f
 +        if (debug_level)
 +            fprintf( stderr, "fsync: Mapping page %d at %p.\n", entry, addr );
 +
-+        if (interlocked_cmpxchg_ptr( &shm_addrs[entry], addr, 0 ))
++        if (InterlockedCompareExchangePointer( &shm_addrs[entry], addr, 0 ))
 +            munmap( addr, pagesize ); /* someone beat us to it */
 +    }
 +
@@ -3032,10 +3032,10 @@ index a274708..cfaa3c3 100644
          esync_init();
  
 diff --git a/server/mapping.c b/server/mapping.c
-index 1fd9008..03e802f 100644
+index 040754a..37ca38f 100644
 --- a/server/mapping.c
 +++ b/server/mapping.c
-@@ -92,6 +92,7 @@ static const struct object_ops ranges_ops =
+@@ -93,6 +93,7 @@ static const struct object_ops ranges_ops =
      NULL,                      /* remove_queue */
      NULL,                      /* signaled */
      NULL,                      /* get_esync_fd */
@@ -3043,7 +3043,7 @@ index 1fd9008..03e802f 100644
      NULL,                      /* satisfied */
      no_signal,                 /* signal */
      no_get_fd,                 /* get_fd */
-@@ -129,6 +130,7 @@ static const struct object_ops shared_map_ops =
+@@ -130,6 +131,7 @@ static const struct object_ops shared_map_ops =
      NULL,                      /* remove_queue */
      NULL,                      /* signaled */
      NULL,                      /* get_esync_fd */
@@ -3051,7 +3051,7 @@ index 1fd9008..03e802f 100644
      NULL,                      /* satisfied */
      no_signal,                 /* signal */
      no_get_fd,                 /* get_fd */
-@@ -187,6 +189,7 @@ static const struct object_ops mapping_ops =
+@@ -188,6 +190,7 @@ static const struct object_ops mapping_ops =
      NULL,                        /* remove_queue */
      NULL,                        /* signaled */
      NULL,                        /* get_esync_fd */
@@ -3129,7 +3129,7 @@ index 12213b5..0f16b1a 100644
      void (*satisfied)(struct object *,struct wait_queue_entry *);
      /* signal an object */
 diff --git a/server/process.c b/server/process.c
-index 8cb3f54..7bd7f99 100644
+index 563efeb..105a255 100644
 --- a/server/process.c
 +++ b/server/process.c
 @@ -49,6 +49,7 @@
@@ -3172,7 +3172,7 @@ index 8cb3f54..7bd7f99 100644
      no_satisfied,                  /* satisfied */
      no_signal,                     /* signal */
      no_get_fd,                     /* get_fd */
-@@ -536,8 +541,9 @@ struct process *create_process( int fd, struct process *parent, int inherit_all,
+@@ -541,8 +546,9 @@ struct process *create_process( int fd, struct process *parent, int inherit_all,
      process->trace_data      = 0;
      process->rawinput_mouse  = NULL;
      process->rawinput_kbd    = NULL;
@@ -3183,7 +3183,7 @@ index 8cb3f54..7bd7f99 100644
      list_init( &process->thread_list );
      list_init( &process->locks );
      list_init( &process->asyncs );
-@@ -581,6 +587,9 @@ struct process *create_process( int fd, struct process *parent, int inherit_all,
+@@ -586,6 +592,9 @@ struct process *create_process( int fd, struct process *parent, int inherit_all,
      }
      if (!process->handles || !process->token) goto error;
  
@@ -3193,7 +3193,7 @@ index 8cb3f54..7bd7f99 100644
      if (do_esync())
          process->esync_fd = esync_create_fd( 0, 0 );
  
-@@ -665,6 +674,13 @@ static int process_get_esync_fd( struct object *obj, enum esync_type *type )
+@@ -670,6 +679,13 @@ static int process_get_esync_fd( struct object *obj, enum esync_type *type )
      return process->esync_fd;
  }
  
@@ -3220,10 +3220,10 @@ index 8e4dc83..5091ad4 100644
  
  struct process_snapshot
 diff --git a/server/protocol.def b/server/protocol.def
-index 80d6e12..6487ff3 100644
+index 1731c34..8779758 100644
 --- a/server/protocol.def
 +++ b/server/protocol.def
-@@ -4020,6 +4020,60 @@ struct handle_info
+@@ -4021,6 +4021,60 @@ struct handle_info
      VARARG(devices,rawinput_devices);
  @END
  
@@ -3579,7 +3579,7 @@ index d714f59..16d0344 100644
      no_signal,                    /* signal */
      no_get_fd,                    /* get_fd */
 diff --git a/server/thread.c b/server/thread.c
-index 9f8c728..7c96116 100644
+index f1a4711..2fd78ab 100644
 --- a/server/thread.c
 +++ b/server/thread.c
 @@ -52,6 +52,7 @@
@@ -3790,10 +3790,10 @@ index e604874..eb8497b 100644
      no_signal,                 /* signal */
      no_get_fd,                 /* get_fd */
 diff --git a/server/trace.c b/server/trace.c
-index 972da20..feefe36 100644
+index 769c189..2c66e8e 100644
 --- a/server/trace.c
 +++ b/server/trace.c
-@@ -4779,6 +4779,63 @@ static void dump_esync_msgwait_request( const struct esync_msgwait_request *req
+@@ -4780,6 +4780,63 @@ static void dump_esync_msgwait_request( const struct esync_msgwait_request *req
      fprintf( stderr, " in_msgwait=%d", req->in_msgwait );
  }
  
@@ -3857,7 +3857,7 @@ index 972da20..feefe36 100644
  static const dump_func req_dumpers[REQ_NB_REQUESTS] = {
      (dump_func)dump_new_process_request,
      (dump_func)dump_exec_process_request,
-@@ -5094,6 +5151,11 @@ static const dump_func req_dumpers[REQ_NB_REQUESTS] = {
+@@ -5095,6 +5152,11 @@ static const dump_func req_dumpers[REQ_NB_REQUESTS] = {
      (dump_func)dump_get_esync_fd_request,
      (dump_func)dump_get_esync_apc_fd_request,
      (dump_func)dump_esync_msgwait_request,
@@ -3869,7 +3869,7 @@ index 972da20..feefe36 100644
  };
  
  static const dump_func reply_dumpers[REQ_NB_REQUESTS] = {
-@@ -5411,6 +5473,11 @@ static const dump_func reply_dumpers[REQ_NB_REQUESTS] = {
+@@ -5412,6 +5474,11 @@ static const dump_func reply_dumpers[REQ_NB_REQUESTS] = {
      (dump_func)dump_get_esync_fd_reply,
      NULL,
      NULL,
@@ -3881,7 +3881,7 @@ index 972da20..feefe36 100644
  };
  
  static const char * const req_names[REQ_NB_REQUESTS] = {
-@@ -5728,6 +5795,11 @@ static const char * const req_names[REQ_NB_REQUESTS] = {
+@@ -5729,6 +5796,11 @@ static const char * const req_names[REQ_NB_REQUESTS] = {
      "get_esync_fd",
      "get_esync_apc_fd",
      "esync_msgwait",

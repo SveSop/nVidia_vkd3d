@@ -9,7 +9,7 @@ Subject: [PATCH] Cybwine
  2 files changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/dlls/kernel32/process.c b/dlls/kernel32/process.c
-index 3f6c5bc..30d17ec 100644
+index c42c06d..60125e2 100644
 --- a/dlls/kernel32/process.c
 +++ b/dlls/kernel32/process.c
 @@ -159,11 +159,11 @@ void CDECL __wine_start_process( LPTHREAD_START_ROUTINE entry, PEB *peb )
