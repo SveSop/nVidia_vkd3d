@@ -1,0 +1,31 @@
+From cd00719122da89a8e654970b4aedd699d4fda8c6 Mon Sep 17 00:00:00 2001
+From: Philip Rebohle <philip.rebohle@tu-dortmund.de>
+Date: Thu, 9 Jan 2020 18:04:25 +0100
+Subject: [PATCH] [dxvk] Tweak number of pipeline compiler threads
+
+Gives some 6-core and 8-core CPUs a bit more breathing room, while
+also supporting up to 32 workers instead of just 16 to leverage
+the new high core count Ryzen CPUs.
+---
+ src/dxvk/dxvk_state_cache.cpp | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/src/dxvk/dxvk_state_cache.cpp b/src/dxvk/dxvk_state_cache.cpp
+index a400f4238..f8ccf65be 100644
+--- a/src/dxvk/dxvk_state_cache.cpp
++++ b/src/dxvk/dxvk_state_cache.cpp
+@@ -154,12 +154,10 @@ namespace dxvk {
+ 
+     // Use half the available CPU cores for pipeline compilation
+     uint32_t numCpuCores = dxvk::thread::hardware_concurrency();
+-    uint32_t numWorkers  = numCpuCores > 8
+-      ? numCpuCores * 3 / 4
+-      : numCpuCores * 1 / 2;
++    uint32_t numWorkers  = ((std::max(1u, numCpuCores) - 1) * 5) / 7;
+ 
+     if (numWorkers <  1) numWorkers =  1;
+-    if (numWorkers > 16) numWorkers = 16;
++    if (numWorkers > 32) numWorkers = 32;
+ 
+     if (device->config().numCompilerThreads > 0)
+       numWorkers = device->config().numCompilerThreads;

@@ -13,10 +13,10 @@ Subject: [PATCH] winecfg: Toggle upstream CSMT implementation
  3 files changed, 19 insertions(+), 7 deletions(-)
 
 diff --git a/programs/winecfg/resource.h b/programs/winecfg/resource.h
-index d77f6a2..93221ba 100644
+index 96f2429..9b57abf 100644
 --- a/programs/winecfg/resource.h
 +++ b/programs/winecfg/resource.h
-@@ -213,7 +213,7 @@
+@@ -214,7 +214,7 @@
  #define IDC_SYSPARAMS_MENUBAR           8431
  
  /* Staging tab */
@@ -26,7 +26,7 @@ index d77f6a2..93221ba 100644
  #define IDC_ENABLE_EAX                  9003
  #define IDC_ENABLE_HIDEWINE             9004
 diff --git a/programs/winecfg/staging.c b/programs/winecfg/staging.c
-index e703a65..a6bb058 100644
+index b573db7..59a389f 100644
 --- a/programs/winecfg/staging.c
 +++ b/programs/winecfg/staging.c
 @@ -36,13 +36,25 @@
@@ -78,10 +78,10 @@ index e703a65..a6bb058 100644
              return TRUE;
          case IDC_ENABLE_VAAPI:
 diff --git a/programs/winecfg/winecfg.rc b/programs/winecfg/winecfg.rc
-index 738c470..2b6e3e3 100644
+index 332520b..f9d0112 100644
 --- a/programs/winecfg/winecfg.rc
 +++ b/programs/winecfg/winecfg.rc
-@@ -317,7 +317,7 @@ FONT 8, "MS Shell Dlg"
+@@ -319,7 +319,7 @@ FONT 8, "MS Shell Dlg"
  BEGIN
      GROUPBOX    "Staging settings",IDC_STATIC,8,4,244,210
      LTEXT       "The following settings are experimental and may break stuff!\nMake sure to reset them again in case of a problem.",IDC_STATIC,16,16,230,16

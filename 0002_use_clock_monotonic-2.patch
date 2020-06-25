@@ -11,10 +11,10 @@ Signed-off-by: Tk-Glitch <ti3nou@gmail.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/dlls/kernel32/time.c b/dlls/kernel32/time.c
-index 4ebdabf..6f3791d 100644
+index 737affc..f82d33c 100644
 --- a/dlls/kernel32/time.c
 +++ b/dlls/kernel32/time.c
-@@ -80,7 +80,7 @@ static inline ULONGLONG monotonic_counter(void)
+@@ -82,7 +82,7 @@ static inline ULONGLONG monotonic_counter(void)
      return mach_absolute_time() * timebase.numer / timebase.denom / 100;
  #elif defined(HAVE_CLOCK_GETTIME)
      struct timespec ts;
